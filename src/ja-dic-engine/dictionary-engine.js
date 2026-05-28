@@ -2,23 +2,29 @@
  * Jitendex Dictionary Engine
  * Maneja la lógica de búsqueda, caché y renderizado.
  */
-class JitendexEngine {
+import JapaneseDeinflector from './deinflector';
+
+export class JitendexEngine {
     constructor(termIndex, dataPath = '') {
         this.termIndex = termIndex;
         this.dataPath = dataPath;
         this.cache = new Map();
-        this.segmenter = typeof TinySegmenter !== 'undefined' ? new TinySegmenter() : null;
+        this.preloadedData = null;
+    }
+
+    setPreloadedData(data) {
+        this.preloadedData = data;
     }
 
     /**
      * Realiza una búsqueda avanzada (exacta + desinflexión + combinación)
      */
-    async lookup(clickedWord, startIdx = 0, fullText = '') {
+    async lookup(clickedWord, startIdx = 0, fullText = '', segmenter = null) {
         const matches = [];
         const searchCandidates = [];
         
         // 1. Exacto y Desinflexiones
-        if (typeof JapaneseDeinflector !== 'undefined') {
+        if (JapaneseDeinflector) {
             JapaneseDeinflector.deinflect(clickedWord).forEach(d => {
                 searchCandidates.push({ 
                     text: d.text, 
@@ -31,32 +37,45 @@ class JitendexEngine {
             searchCandidates.push({ text: clickedWord, type: 'exact', original: clickedWord });
         }
 
-        // 2. Combinación con tokens siguientes (Merge)
-        if (this.segmenter && fullText) {
+        // 2. Combinación Inteligente (Merge)
+        if (fullText) {
             let combined = clickedWord;
             const remainingText = fullText.slice(startIdx + clickedWord.length);
-            const nextTokens = this.segmenter.segment(remainingText).slice(0, 4);
             
-            for (const nextT of nextTokens) {
-                if (/[、。！？\s]/.test(nextT)) break;
-                combined += nextT;
-                
-                if (typeof JapaneseDeinflector !== 'undefined') {
-                    JapaneseDeinflector.deinflect(combined).forEach(d => {
-                        searchCandidates.push({ 
-                            text: d.text, 
-                            type: d.text === combined ? 'combined' : 'deinflected-combined', 
-                            original: combined,
-                            info: d.rules[0]
-                        });
+            // MÉTODO A: Basado en tokens (más preciso)
+            if (segmenter) {
+                const nextTokens = segmenter.segment(remainingText).slice(0, 4);
+                let currentCombined = clickedWord;
+                for (const nextT of nextTokens) {
+                    if (/[、。！？\s]/.test(nextT)) break;
+                    currentCombined += nextT;
+                    searchCandidates.push({ 
+                        text: currentCombined, 
+                        type: 'combined', 
+                        original: clickedWord 
                     });
-                } else {
-                    searchCandidates.push({ text: combined, type: 'combined', original: combined });
+                }
+            }
+
+            // MÉTODO B: Basado en caracteres (más agresivo, para casos como T-shirt)
+            // Probamos combinando hasta 7 caracteres adicionales
+            let charCombined = clickedWord;
+            for (let i = 0; i < Math.min(remainingText.length, 7); i++) {
+                const nextChar = remainingText[i];
+                if (/[、。！？\s]/.test(nextChar)) break;
+                charCombined += nextChar;
+                // Evitamos duplicados con el método A
+                if (!searchCandidates.find(c => c.text === charCombined)) {
+                    searchCandidates.push({ 
+                        text: charCombined, 
+                        type: 'combined-char', 
+                        original: clickedWord 
+                    });
                 }
             }
         }
 
-        // 3. Ejecutar búsqueda en los archivos
+        // 3. Filtrar candidatos que existen en el índice
         const fileIdsToFetch = new Map();
         for (const cand of searchCandidates) {
             const ids = this.termIndex[cand.text] || [];
@@ -66,27 +85,33 @@ class JitendexEngine {
             });
         }
 
+        // 4. Ejecutar búsqueda en los archivos
         const fetchPromises = Array.from(fileIdsToFetch.entries()).map(async ([fileId, candidates]) => {
             try {
                 let data;
-                if (this.cache.has(fileId)) data = this.cache.get(fileId);
-                else {
+                if (this.preloadedData) {
+                    data = this.preloadedData;
+                } else if (this.cache.has(fileId)) {
+                    data = this.cache.get(fileId);
+                } else {
                     const resp = await fetch(`${this.dataPath}term_bank_${fileId}.json`);
                     data = await resp.json();
                     this.cache.set(fileId, data);
                 }
                 
-                for (const cand of candidates) {
-                    const found = data.filter(e => e[0] === cand.text || e[1] === cand.text);
-                    found.forEach(f => matches.push({ entry: f, cand: cand }));
+                if (data) {
+                    for (const cand of candidates) {
+                        const found = data.filter(e => e[0] === cand.text || e[1] === cand.text);
+                        found.forEach(f => matches.push({ entry: f, cand: cand }));
+                    }
                 }
             } catch (e) {}
         });
 
         await Promise.all(fetchPromises);
 
-        // 4. Ranking y Dedup
-        const typePriority = { 'combined': 4, 'exact': 3, 'deinflected': 2, 'prefix': 1, 'deinflected-combined': 4 };
+        // 5. Ranking y Dedup
+        const typePriority = { 'combined': 5, 'combined-char': 4, 'exact': 3, 'deinflected': 2, 'prefix': 1 };
         matches.sort((a, b) => {
             const pA = typePriority[a.cand.type] || 0;
             const pB = typePriority[b.cand.type] || 0;
@@ -106,42 +131,7 @@ class JitendexEngine {
         return unique;
     }
 
-    /**
-     * Convierte una entrada del diccionario a HTML
-     */
     renderEntry(m) {
-        const [term, reading, tags, rules, score, content] = m.entry;
-        const cand = m.cand;
-        const tagList = (tags || '').split(' ');
-        
-        let glossaryHtml = '';
-        if (Array.isArray(content)) {
-            glossaryHtml = content.map(c => this.renderStructured(c)).join('');
-        }
-
-        return `
-            <div class="entry ${cand.type.includes('deinflected') ? 'secondary' : ''}">
-                <div class="match-info">Match: ${cand.type}${cand.info ? ` (${cand.info})` : ''}</div>
-                <div class="term-header">
-                    <div class="term">${term}</div>
-                    ${reading && reading !== term ? `<div class="reading">【${reading}】</div>` : ''}
-                    ${tagList.map(t => t ? `<span class="tag ${t.toLowerCase()}">${t}</span>` : '').join('')}
-                </div>
-                <div class="glossary"><ul>${glossaryHtml}</ul></div>
-            </div>
-        `;
-    }
-
-    renderStructured(content) {
-        if (!content) return '';
-        if (typeof content === 'string') return `<li>${content}</li>`;
-        if (content.type === 'structured-content') return this.renderStructured(content.content);
-        if (Array.isArray(content)) return content.map(item => this.renderStructured(item)).join('');
-        if (typeof content === 'object') {
-            if (content.tag === 'li') return `<li>${this.renderStructured(content.content)}</li>`;
-            if (content.content) return this.renderStructured(content.content);
-            if (content.text) return `<li>${content.text}</li>`;
-        }
-        return '';
+        return "RN should use custom components for rendering";
     }
 }
