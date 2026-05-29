@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Text,
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Button,
   StatusBar,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,7 +19,12 @@ import { LookupResult } from './src/types';
 // Components
 import { ResultsList } from './src/components/ResultsList';
 import { TokenPill } from './src/components/TokenPill';
-import {open} from '@op-engineering/op-sqlite';
+import db from './src/db/config';
+import { dbEngine } from './src/db/engine';
+import { TermBankEntry } from './src/db/schemas/Term';
+
+// CARGAMOS EL ARCHIVO JSON DEL DICCIONARIO
+const termBank1 = require('./dic/[JA-EN] jitendex-yomitan (2026-05-05)/term_bank_1.json');
 
 const EXAMPLES = [
   "あそこはおなじＴシャツです",
@@ -26,25 +32,57 @@ const EXAMPLES = [
   "あくどいやり方はあかん",
   "まるを描くのはおなじです"
 ];
-export const db = open({
-  name: 'ippodake.ringo.database.db',
-});
+
 const AppContent: React.FC = () => {
-  useEffect(() => {
-    db.execute('CREATE TABLE IF NOT EXISTS dictionary (id INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT, reading TEXT, meaning TEXT);')
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['あそこ', 'asoko', 'allí']);
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['おなじ', 'onaji', 'igual']);
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['Ｔシャツ', 'T-shatsu', 'camiseta']);
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['明白', 'meihaku', 'claro']);
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['間違い', 'machigai', 'error']);
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['あげつらう', 'agetsurau', 'criticar']);
-    db.execute('INSERT INTO dictionary (word, reading, meaning) VALUES (?, ?, ?)', ['あくどい', 'akudoi', 'malvado']);
-  }
-  , []);
+  // Obtenemos los repositorios de forma estrictamente tipada
+  const termRepository = useMemo(() => dbEngine.getRepository('TermBankEntryRepository'), []);
+
   const [sentence, setSentence] = useState(EXAMPLES[0]);
   const [results, setResults] = useState<LookupResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingSeeding, setLoadingSeeding] = useState<boolean>(false); // Estado para el botón de la base de datos
   const [activeMethod, setActiveMethod] = useState<string>('');
+
+  // FUNCIÓN PARA LLENAR LA BASE DE DATOS
+  const handleSeedDatabase = async () => {
+    setLoadingSeeding(true);
+    try {
+      // 1. Validamos si ya existen datos para evitar duplicados accidentales
+      const existingData = await termRepository.getAll();
+      if (existingData && existingData.length > 0) {
+        Alert.alert('Base de datos activa', `La base de datos ya contiene ${existingData.length} palabras. No es necesario volver a llenarla.`);
+        setLoadingSeeding(false);
+        return;
+      }
+
+      console.log('[DB] Iniciando la migración del JSON a SQLite...');
+      
+      // 2. Iteramos el array de Jitendex e insertamos fila por fila en SQL
+      for (const entry of termBank1) {
+        await termRepository.insert({
+          id: 1,
+          term: entry[0],
+          reading: entry[1],
+          definition_tags: entry[2] || '',
+          deinflection_rules: entry[3] || '',
+          score: entry[4] || 0,
+          glossary: JSON.stringify(entry[5]), // Objeto estructurado guardado como string de texto plano
+          sequence: entry[6] || 0,
+          entry_tags: entry[7] || '',
+          name: entry[0],
+          age: 0
+        } as TermBankEntry);
+      }
+      
+      console.log('[DB] ¡Población masiva completada!');
+      Alert.alert('Éxito', 'La base de datos se ha llenado con las palabras del diccionario correctamente.');
+    } catch (error) {
+      console.error('[DB] Error crítico al llenar la base de datos:', error);
+      Alert.alert('Error', 'Hubo un fallo al migrar los datos a SQLite.');
+    } finally {
+      setLoadingSeeding(false);
+    }
+  };
 
   const handleCharPress = async (index: number) => {
     setLoading(true);
@@ -73,11 +111,38 @@ const AppContent: React.FC = () => {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        
+        {/* PANEL DE CONTROL DE BASE DE DATOS */}
+        <View style={styles.dbActionsContainer}>
+          {loadingSeeding ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.loadingText}>Escribiendo palabras en SQLite... No cierres la app</Text>
+            </View>
+          ) : (
+            <View style={styles.buttonRow}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Button 
+                  onPress={handleSeedDatabase} 
+                  title="Llenar Base" 
+                  color="#28a745" // Verde para indicar acción de carga
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button 
+                  onPress={async () => {
+                    const countData = await termRepository.getAll();
+                    Alert.alert('Contador actual', `Total de palabras en term_bank: ${countData.length}`);
+                  }} 
+                  title="Verificar Total" 
+                  color="#6c757d"
+                />
+              </View>
+            </View>
+          )}
+        </View>
+
         {/* Selector de Oraciones */}
-        <Button onPress={()=>{
-          const data = db.execute('SELECT * FROM dictionary');
-          console.log('Data from DB:', data);
-        }} title="Mostrar Datos" />
         <View style={styles.selectorScroll}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {EXAMPLES.map((ex, i) => (
@@ -135,6 +200,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', color: '#000' },
   methodText: { fontSize: 13, color: '#007AFF', marginTop: 4, fontWeight: '600' },
   
+  // Estilos del panel de control SQLite
+  dbActionsContainer: { padding: 15, backgroundColor: '#f8f9fa', borderBottomWidth: 1, borderBottomColor: '#e9ecef' },
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  loadingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
+  loadingText: { marginLeft: 10, fontSize: 12, color: '#666', fontWeight: '500' },
+
   selectorScroll: { paddingVertical: 15, paddingHorizontal: 15, backgroundColor: '#fcfcfc' },
   selectorPill: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: '#eee', marginRight: 10 },
   selectorActive: { backgroundColor: '#000' },

@@ -5,9 +5,9 @@
 import JapaneseDeinflector from './deinflector';
 
 export class JitendexEngine {
-    constructor(termIndex, dataPath = '') {
-        this.termIndex = termIndex;
-        this.dataPath = dataPath;
+    constructor(termRepository) {
+        // Recibimos el repositorio limpio directamente en el constructor
+        this.termRepository = termRepository;
         this.cache = new Map();
         this.preloadedData = null;
     }
@@ -42,7 +42,7 @@ export class JitendexEngine {
             let combined = clickedWord;
             const remainingText = fullText.slice(startIdx + clickedWord.length);
             
-            // MÉTODO A: Basado en tokens (más preciso)
+            // CONTRATO A: Basado en tokens (más preciso)
             if (segmenter) {
                 const nextTokens = segmenter.segment(remainingText).slice(0, 4);
                 let currentCombined = clickedWord;
@@ -57,14 +57,12 @@ export class JitendexEngine {
                 }
             }
 
-            // MÉTODO B: Basado en caracteres (más agresivo, para casos como T-shirt)
-            // Probamos combinando hasta 7 caracteres adicionales
+            // CONTRATO B: Basado en caracteres (más agresivo, para casos como T-shirt)
             let charCombined = clickedWord;
             for (let i = 0; i < Math.min(remainingText.length, 7); i++) {
                 const nextChar = remainingText[i];
                 if (/[、。！？\s]/.test(nextChar)) break;
                 charCombined += nextChar;
-                // Evitamos duplicados con el método A
                 if (!searchCandidates.find(c => c.text === charCombined)) {
                     searchCandidates.push({ 
                         text: charCombined, 
@@ -75,42 +73,42 @@ export class JitendexEngine {
             }
         }
 
-        // 3. Filtrar candidatos que existen en el índice
-        const fileIdsToFetch = new Map();
-        for (const cand of searchCandidates) {
-            const ids = this.termIndex[cand.text] || [];
-            ids.forEach(id => {
-                if (!fileIdsToFetch.has(id)) fileIdsToFetch.set(id, []);
-                fileIdsToFetch.get(id).push(cand);
-            });
+        // =========================================================================
+        // REEMPLAZO: PASO 3 Y 4 UNIFICADOS PARA CONSULTAR EN LA BASE DE DATOS SQL
+        // =========================================================================
+        const textToSearch = searchCandidates.map(cand => cand.text);
+        
+        if (textToSearch.length > 0) {
+            try {
+                // Hacemos una única consulta SQL masiva pasando todos los textos recolectados
+                const databaseRows = await this.termRepository.findByTermsAndReadings(textToSearch);
+
+                // Mapeamos los resultados directo al formato de matriz plana de tu UI
+                for (const cand of searchCandidates) {
+                    const foundRows = databaseRows.filter(row => row.term === cand.text || row.reading === cand.text);
+                    
+                    foundRows.forEach(row => {
+                        matches.push({
+                            entry: [
+                                row.term,
+                                row.reading,
+                                row.definition_tags || '',
+                                row.deinflection_rules || '',
+                                row.score || 0,
+                                typeof row.glossary === 'string' ? JSON.parse(row.glossary) : row.glossary,
+                                row.sequence || 0,
+                                row.entry_tags || ''
+                            ],
+                            cand: cand
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error("Error buscando términos en SQL:", error);
+            }
         }
 
-        // 4. Ejecutar búsqueda en los archivos
-        const fetchPromises = Array.from(fileIdsToFetch.entries()).map(async ([fileId, candidates]) => {
-            try {
-                let data;
-                if (this.preloadedData) {
-                    data = this.preloadedData;
-                } else if (this.cache.has(fileId)) {
-                    data = this.cache.get(fileId);
-                } else {
-                    const resp = await fetch(`${this.dataPath}term_bank_${fileId}.json`);
-                    data = await resp.json();
-                    this.cache.set(fileId, data);
-                }
-                
-                if (data) {
-                    for (const cand of candidates) {
-                        const found = data.filter(e => e[0] === cand.text || e[1] === cand.text);
-                        found.forEach(f => matches.push({ entry: f, cand: cand }));
-                    }
-                }
-            } catch (e) {}
-        });
-
-        await Promise.all(fetchPromises);
-
-        // 5. Ranking y Dedup
+        // 5. Ranking y Dedup (Exactamente idéntico a tu original)
         const typePriority = { 'combined': 5, 'combined-char': 4, 'exact': 3, 'deinflected': 2, 'prefix': 1 };
         matches.sort((a, b) => {
             const pA = typePriority[a.cand.type] || 0;
