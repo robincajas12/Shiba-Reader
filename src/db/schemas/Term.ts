@@ -12,21 +12,21 @@ export type TermBankEntry = {
     entry_tags: string;       // Posición [7]: Etiquetas generales de la entrada
 }
 
-export const SchemaTermBank: Schema = {
-    id: { name: 'id', type: 'INTEGER', extraInfo: 'PRIMARY KEY AUTOINCREMENT' },
-    term: { name: 'term', type: 'TEXT' },
-    reading: { name: 'reading', type: 'TEXT' },
-    definition_tags: { name: 'definition_tags', type: 'TEXT' },
-    deinflection_rules: { name: 'deinflection_rules', type: 'TEXT' },
-    score: { name: 'score', type: 'INTEGER' },
-    glossary: { name: 'glossary', type: 'TEXT' }, // Almacenará el JSON estructurado como texto
-    sequence: { name: 'sequence', type: 'INTEGER' },
-    entry_tags: { name: 'entry_tags', type: 'TEXT' }
-};
+
 
 export const TableTermBank: Table = {
     name: 'term_bank',
-    schema: SchemaTermBank,
+    schema:  {
+        id: { name: 'id', type: 'INTEGER', extraInfo: 'PRIMARY KEY AUTOINCREMENT' },
+        term: { name: 'term', type: 'TEXT' },
+        reading: { name: 'reading', type: 'TEXT' },
+        definition_tags: { name: 'definition_tags', type: 'TEXT' },
+        deinflection_rules: { name: 'deinflection_rules', type: 'TEXT' },
+        score: { name: 'score', type: 'INTEGER' },
+        glossary: { name: 'glossary', type: 'TEXT' }, // Almacenará el JSON estructurado como texto
+        sequence: { name: 'sequence', type: 'INTEGER' },
+        entry_tags: { name: 'entry_tags', type: 'TEXT' }
+    },
     indexes: [
         {
             name: 'idx_term_bank_search',

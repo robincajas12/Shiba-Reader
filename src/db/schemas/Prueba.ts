@@ -6,13 +6,12 @@ export type Prueba = {
     age: number;
 }
 
-export const SchemaPrueba: Schema = {
-    id: { name: 'id', type: 'INTEGER', extraInfo: 'PRIMARY KEY AUTOINCREMENT' },
-    name: { name: 'name', type: 'TEXT' },
-    age: { name: 'age', type: 'INTEGER' }
-};
 
 export const TablePrueba: Table = {
     name: 'pruebas',
-    schema: SchemaPrueba
+    schema:  {
+        id: { name: 'id', type: 'INTEGER', extraInfo: 'PRIMARY KEY AUTOINCREMENT' },
+        name: { name: 'name', type: 'TEXT' },
+        age: { name: 'age', type: 'INTEGER' }
+    }
 };
