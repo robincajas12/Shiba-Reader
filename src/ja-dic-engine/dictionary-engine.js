@@ -115,7 +115,6 @@ export class JitendexEngine {
 
         // =====================================================
         // 3. SQL
-        // (única diferencia respecto al original)
         // =====================================================
 
         const uniqueTexts = [
@@ -128,16 +127,27 @@ export class JitendexEngine {
 
         if (uniqueTexts.length > 0) {
             try {
-                const databaseRows =
-                    await this.termRepository
-                        .findByTermsAndReadings(uniqueTexts);
+                const databaseRows = await this.termRepository.findByTermsAndReadings(uniqueTexts);
+
+                // 🚀 Indexamos resultados en un Mapa para O(1) lookup
+                const rowsMap = new Map();
+                for (const row of databaseRows) {
+                    const parsedRow = {
+                        ...row,
+                        glossary: typeof row.glossary === 'string' ? JSON.parse(row.glossary) : row.glossary
+                    };
+                    
+                    if (!rowsMap.has(row.term)) rowsMap.set(row.term, []);
+                    rowsMap.get(row.term).push(parsedRow);
+                    
+                    if (row.reading && row.reading !== row.term) {
+                        if (!rowsMap.has(row.reading)) rowsMap.set(row.reading, []);
+                        rowsMap.get(row.reading).push(parsedRow);
+                    }
+                }
 
                 for (const cand of searchCandidates) {
-                    const foundRows = databaseRows.filter(
-                        row =>
-                            row.term === cand.text ||
-                            row.reading === cand.text
-                    );
+                    const foundRows = rowsMap.get(cand.text) || [];
 
                     foundRows.forEach(row => {
                         matches.push({
@@ -147,9 +157,7 @@ export class JitendexEngine {
                                 row.definition_tags || '',
                                 row.deinflection_rules || '',
                                 row.score || 0,
-                                typeof row.glossary === 'string'
-                                    ? JSON.parse(row.glossary)
-                                    : row.glossary,
+                                row.glossary,
                                 row.sequence || 0,
                                 row.entry_tags || ''
                             ],
@@ -158,10 +166,7 @@ export class JitendexEngine {
                     });
                 }
             } catch (error) {
-                console.error(
-                    'Error buscando términos en SQL:',
-                    error
-                );
+                console.error('Error buscando términos en SQL:', error);
             }
         }
 
@@ -202,10 +207,8 @@ export class JitendexEngine {
         const seen = new Set();
 
         for (const m of matches) {
-            const key =
-                m.entry[0] +
-                m.entry[1] +
-                JSON.stringify(m.entry[5]);
+            // 🚀 Key más ligera para el Set
+            const key = `${m.entry[0]}-${m.entry[1]}-${m.entry[6]}`;
 
             if (!seen.has(key)) {
                 unique.push(m);

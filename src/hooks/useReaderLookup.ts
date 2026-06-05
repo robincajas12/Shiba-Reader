@@ -29,7 +29,7 @@ export const useReaderLookup = () => {
   const handleWebViewMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log("Mensaje recibido del WebView:", data);
+
       if (data.type === 'SCROLL') {
         if (popup.visible) setPopup(prev => ({ ...prev, visible: false }));
         return;
@@ -41,6 +41,14 @@ export const useReaderLookup = () => {
         const { sentence, charIndex, x, y } = data;
         if (!sentence) return;
 
+        // 🚀 PASO 1: Iniciar carga inmediatamente
+        setLoading(true);
+
+        // 🚀 PASO 2: Hacer el lookup ANTES de mover la UI
+        // Esto evita que el popup "salte" o aparezca vacío
+        const lookupData = await lookupAtCharacterIndex(sentence, charIndex);
+
+        // 🚀 PASO 3: Calcular posición y mostrar todo de GOLPE
         const popupWidth = SCREEN_WIDTH * 0.88;
         let leftPos = x - popupWidth / 2;
         if (leftPos < 15) leftPos = 15;
@@ -48,22 +56,22 @@ export const useReaderLookup = () => {
 
         const popupHeight = 220; 
         let topPos = y + 40; 
-        
+
         if (topPos + popupHeight > SCREEN_HEIGHT - 60) {
           topPos = y - popupHeight - 20; 
         }
 
+        // Una sola actualización de estado para la UI del popup
+        setResults(lookupData);
         setPopup({
           visible: true,
           top: topPos,
           left: leftPos
         });
-
-        setLoading(true);
-        const lookupData = await lookupAtCharacterIndex(sentence, charIndex);
-        setResults(lookupData);
+        setLoading(false);
       }
     } catch (error) {
+
       console.error("Error al recibir mensaje del WebView:", error);
     } finally {
       setLoading(false);

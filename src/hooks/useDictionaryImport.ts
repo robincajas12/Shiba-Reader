@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import DocumentPicker from 'react-native-document-picker';
+import { pick, types, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import { unzip } from 'react-native-zip-archive';
 import RNFS from 'react-native-fs';
 import { dbEngine } from '../db/engine';
@@ -9,24 +9,42 @@ import { TermBankEntry } from '../db/schemas/Term';
 export const useDictionaryImport = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState('');
-  const termRepository = dbEngine.getRepository('TermBankEntryRepository');
 
   const importFromZip = async () => {
     try {
       // 1. Seleccionar archivo
-      const result = await DocumentPicker.pickSingle({
-        type: [DocumentPicker.types.zip],
+      const [result] = await pick({
+        type: [types.zip, 'application/zip'],
       });
 
+      if (!result) return;
+
+      // 🚀 Obtenemos el repositorio justo antes de usarlo
+      const termRepository = dbEngine.getRepository('TermBankEntryRepository');
+      if (!termRepository) {
+        throw new Error('No se pudo inicializar el repositorio de la base de datos.');
+      }
+
       setIsImporting(true);
-      setProgress('Extrayendo archivo...');
+      setProgress('Preparando archivo...');
 
       // 2. Rutas temporales
       const tempPath = `${RNFS.TemporaryDirectoryPath}/dic_import_${Date.now()}`;
+      const tempZipPath = `${RNFS.TemporaryDirectoryPath}/temp_dic_${Date.now()}.zip`;
+      
       await RNFS.mkdir(tempPath);
 
-      // 3. Descomprimir
-      await unzip(result.uri, tempPath);
+      // 🚀 COPIAR EL ARCHIVO (Necesario en Android para procesar content:// URIs)
+      await RNFS.copyFile(result.uri, tempZipPath);
+
+      setProgress('Extrayendo archivo...');
+
+      // 3. Descomprimir usando la ruta del archivo físico local
+      await unzip(tempZipPath, tempPath);
+      
+      // Eliminar el zip temporal una vez extraído
+      await RNFS.unlink(tempZipPath);
+      
       setProgress('Buscando bancos de términos...');
 
       // 4. Leer archivos term_bank_*.json
@@ -79,7 +97,7 @@ export const useDictionaryImport = () => {
     } catch (err) {
       setIsImporting(false);
       setProgress('');
-      if (DocumentPicker.isCancel(err)) {
+      if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
         console.log('User cancelled the picker');
       } else {
         console.error(err);

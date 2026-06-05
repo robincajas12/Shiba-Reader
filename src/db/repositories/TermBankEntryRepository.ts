@@ -7,29 +7,31 @@ export class TermBankEntryRepository extends Repository<TermBankEntry> {
         super(TableTermBank);
     }
 
-async findByTermsAndReadings(candidates: string[]): Promise<TermBankEntry[]> {
-    if (!candidates || candidates.length === 0) return [];
+    async findByTermsAndReadings(candidates: string[]): Promise<TermBankEntry[]> {
+        if (!candidates || candidates.length === 0) return [];
 
-    // Limpiamos duplicados en JavaScript
-    const uniqueCandidates = [...new Set(candidates)].filter(Boolean);
+        const uniqueCandidates = [...new Set(candidates)].filter(Boolean);
+        const placeholders = uniqueCandidates.map(() => '?').join(', ');
 
-    // Construimos sub-queries individuales con "=" en vez de "IN"
-    // Esto obliga a SQLite a usar el índice de forma atómica para cada palabra
-    const termQueries = uniqueCandidates.map(() => `SELECT * FROM term_bank WHERE term = ?`);
-    const readingQueries = uniqueCandidates.map(() => `SELECT * FROM term_bank WHERE reading = ?`);
+        // 🚀 OPTIMIZACIÓN BALANCEADA: Dos grandes búsquedas indexadas unidas
+        const query = `
+            SELECT * FROM term_bank WHERE term IN (${placeholders})
+            UNION ALL
+            SELECT * FROM term_bank WHERE reading IN (${placeholders}) LIMIT 5
+        `;
 
-    // Juntamos absolutamente todo con UNION ALL
-    const finalQuery = [...termQueries, ...readingQueries].join('\nUNION ALL\n');
+        const params = [...uniqueCandidates, ...uniqueCandidates];
 
-    // Los parámetros deben alinearse con el orden de las queries creadas
-    const params = [...uniqueCandidates, ...uniqueCandidates];
-
-    try {
-        const result = await db.execute(finalQuery, params);
-        return (await result.rows || []) as TermBankEntry[];
-    } catch (error) {
-        console.error("Error en query optimizada por bloques:", error);
-        return [];
+        try {
+            const start = Date.now();
+            const result = await db.execute(query, params);
+            const duration = Date.now() - start;
+            console.log(`findByTermsAndReadings ${duration}ms`);
+            
+            return (await result.rows || []) as TermBankEntry[];
+        } catch (error) {
+            console.error("Error en query UNION ALL:", error);
+            return [];
+        }
     }
-}
 }
