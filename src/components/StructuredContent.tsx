@@ -11,7 +11,7 @@ interface StructuredContentProps {
 /**
  * Recursive renderer for Jitendex's complex JSON data structure.
  */
-export const StructuredContent: React.FC<StructuredContentProps> = ({ content, isInsideRuby = false }) => {
+export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({ content, isInsideRuby = false }) => {
   if (!content) return null;
 
   if (typeof content === 'string') {
@@ -108,7 +108,7 @@ export const StructuredContent: React.FC<StructuredContentProps> = ({ content, i
   }
 
   return null;
-};
+});
 
 const styles = StyleSheet.create({
   textNode: { fontSize: 15, color: Theme.colors.text, lineHeight: 22 } as TextStyle,

@@ -10,7 +10,7 @@ interface ResultsListProps {
   hasInput: boolean;
 }
 
-export const ResultsList: React.FC<ResultsListProps> = ({ results, loading, hasInput }) => {
+export const ResultsList: React.FC<ResultsListProps> = React.memo(({ results, loading, hasInput }) => {
   return (
     <View style={styles.resultsContainer}>
       <View style={styles.resultsMeta}>
@@ -18,11 +18,7 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, loading, hasI
         {loading && <ActivityIndicator size="small" color={Theme.colors.textMuted} />}
       </View>
 
-      <ScrollView
-        style={styles.resultsScroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.resultsScroll}>
         {!loading && results.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
@@ -33,10 +29,10 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, loading, hasI
         {!loading && results.map((m, i) => (
           <EntryCard key={i} entry={m.entry} cand={m.cand} />
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   resultsContainer: {
@@ -47,7 +43,6 @@ const styles = StyleSheet.create({
   resultsMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   resultsLabel: { fontSize: 11, fontWeight: 'bold', color: Theme.colors.textMuted, letterSpacing: 1.5 },
   resultsScroll: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
   emptyState: { alignItems: 'center', marginTop: 40 },
   emptyStateText: { fontSize: 14, color: Theme.colors.secondary, fontWeight: '500', textAlign: 'center' },
 });

@@ -9,7 +9,7 @@ interface EntryCardProps {
   cand: LookupCandidate;
 }
 
-export const EntryCard: React.FC<EntryCardProps> = ({ entry, cand }) => {
+export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, cand }) => {
   const [term, reading, tags, rules, , content] = entry;
   const tagList = (tags || '').split(' ').filter(Boolean);
 
@@ -43,7 +43,7 @@ export const EntryCard: React.FC<EntryCardProps> = ({ entry, cand }) => {
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   card: { 

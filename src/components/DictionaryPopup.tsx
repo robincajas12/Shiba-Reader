@@ -13,7 +13,7 @@ interface DictionaryPopupProps {
   onClose: () => void;
 }
 
-export const DictionaryPopup: React.FC<DictionaryPopupProps> = ({
+export const DictionaryPopup: React.FC<DictionaryPopupProps> = React.memo(({
   visible,
   top,
   left,
@@ -34,7 +34,8 @@ export const DictionaryPopup: React.FC<DictionaryPopupProps> = ({
       </TouchableOpacity>
 
       <ScrollView 
-        style={{ maxHeight: 180 }} 
+        style={{ maxHeight: 220 }} 
+        contentContainerStyle={{ paddingBottom: Theme.spacing.md }}
         showsVerticalScrollIndicator={true}
         onTouchStart={(e) => e.stopPropagation()} 
       >
@@ -42,7 +43,7 @@ export const DictionaryPopup: React.FC<DictionaryPopupProps> = ({
       </ScrollView>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   popupCard: {
