@@ -34,13 +34,13 @@ const scriptJs = `
     }
 
     document.addEventListener('click', (event) => {
-        event.preventDefault(); 
-
         const range = document.caretRangeFromPoint(event.clientX, event.clientY);
         if (!range) return;
 
         const node = range.startContainer;
         if (node.nodeType !== Node.TEXT_NODE) return;
+
+        event.preventDefault(); 
 
         const text = node.textContent || '';
         const offset = range.startOffset;
@@ -50,7 +50,7 @@ const scriptJs = `
         if (result.sentence && window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(
                 JSON.stringify({ 
-                    type: 'CLICK', // Marcamos que es un click
+                    type: 'CLICK', 
                     sentence: result.sentence,
                     charIndex: result.charIndex,
                     x: event.clientX,
@@ -60,7 +60,6 @@ const scriptJs = `
         }
     });
 
-    // 🚀 ESTO LIBERA TU SCROLL: Avisa a la app que el usuario está moviendo la página
     window.addEventListener('scroll', () => {
         if (window.ReactNativeWebView) {
             window.ReactNativeWebView.postMessage(

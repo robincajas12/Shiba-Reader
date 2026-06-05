@@ -40,16 +40,13 @@ export const ResultsList: React.FC<ResultsListProps> = ({ results, loading, hasI
 const styles = StyleSheet.create({
   resultsContainer: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
-    borderTopWidth: 1,
-    borderTopColor: '#EEE',
+    backgroundColor: 'transparent',
     paddingTop: 15,
-    paddingHorizontal: 20,
   },
   resultsMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  resultsLabel: { fontSize: 11, fontWeight: 'bold', color: '#BBB', letterSpacing: 1.5 },
+  resultsLabel: { fontSize: 11, fontWeight: 'bold', color: '#8d8578', letterSpacing: 1.5 },
   resultsScroll: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
-  emptyState: { alignItems: 'center', marginTop: 60 },
-  emptyStateText: { fontSize: 14, color: '#CCC', fontWeight: '500' },
+  emptyState: { alignItems: 'center', marginTop: 40 },
+  emptyStateText: { fontSize: 14, color: '#555', fontWeight: '500', textAlign: 'center' },
 });

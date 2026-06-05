@@ -14,11 +14,13 @@ export const TokenPill: React.FC<TokenPillProps> = ({ text, onPress }) => (
 
 const styles = StyleSheet.create({
   pill: { 
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#252525',
     paddingHorizontal: 12, 
     paddingVertical: 7, 
     margin: 3, 
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#333',
   } as ViewStyle,
-  pillText: { fontSize: 15, color: '#444', fontWeight: '600' } as TextStyle,
+  pillText: { fontSize: 15, color: '#c8c0b0', fontWeight: '600' } as TextStyle,
 });

@@ -47,33 +47,33 @@ const styles = StyleSheet.create({
   popupCard: {
     position: 'absolute',
     width: '88%',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1c1c1c',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingBottom: 16,
     paddingTop: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
     elevation: 10,
     borderWidth: 1,
-    borderColor: '#e8e8e8',
+    borderColor: '#333',
     zIndex: 9999, 
   },
   closeButton: {
     alignSelf: 'flex-end',
-    backgroundColor: '#f0f0f0',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    backgroundColor: '#333',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 6
   },
   closeButtonText: {
-    fontSize: 10,
-    color: '#666',
+    fontSize: 12,
+    color: '#c8c0b0',
     fontWeight: 'bold'
   }
 });
