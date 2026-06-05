@@ -6,6 +6,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { ReaderScreen } from '../screens/ReaderScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { Theme } from '../theme';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -18,7 +19,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const TabIcon = ({ label, focused }: { label: string; focused: boolean }) => (
   <Text style={{ 
-    color: focused ? '#c8c0b0' : '#555', 
+    color: focused ? Theme.colors.primary : Theme.colors.textMuted, 
     fontSize: 20,
     marginTop: 5
   }}>
@@ -40,24 +41,25 @@ export const AppNavigator = () => {
           else if (route.name === 'Settings') icon = '⚙️';
           return <TabIcon label={icon} focused={focused} />;
         },
-        tabBarActiveTintColor: '#c8c0b0',
-        tabBarInactiveTintColor: '#555',
+        tabBarActiveTintColor: Theme.colors.primary,
+        tabBarInactiveTintColor: Theme.colors.textMuted,
         tabBarStyle: {
           height: 60,
           paddingBottom: 10,
-          backgroundColor: '#1c1c1c',
-          borderTopColor: '#333',
+          backgroundColor: Theme.colors.surface,
+          borderTopColor: Theme.colors.border,
         },
         tabBarLabelStyle: {
           fontSize: 12,
         },
         headerStyle: {
-          backgroundColor: '#1c1c1c',
+          backgroundColor: Theme.colors.surface,
         },
         headerTitleStyle: {
-          color: '#e5dccb',
+          color: Theme.colors.header,
+          fontFamily: Theme.fonts.serif,
         },
-        headerTintColor: '#e5dccb',
+        headerTintColor: Theme.colors.header,
       })}
     >
       <Tab.Screen 

@@ -3,6 +3,7 @@ import { View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { SearchSection } from '../components/SearchSection';
 import { ResultsList } from '../components/ResultsList';
 import { useDictionary } from '../hooks/useDictionary';
+import { Theme } from '../theme';
 
 export const SearchScreen: React.FC = () => {
   const { 
@@ -38,13 +39,13 @@ export const SearchScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#161616', // LN Dark Theme
+    backgroundColor: Theme.colors.background,
   },
   scrollView: {
     flex: 1,
   },
   resultsWrapper: {
-    paddingHorizontal: 15,
-    paddingBottom: 20,
+    paddingHorizontal: Theme.spacing.md,
+    paddingBottom: Theme.spacing.lg,
   },
 });

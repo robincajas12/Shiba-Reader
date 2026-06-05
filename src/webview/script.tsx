@@ -34,6 +34,8 @@ const scriptJs = `
     }
 
     document.addEventListener('click', (event) => {
+        if (window.isScannerEnabled === false) return;
+
         const range = document.caretRangeFromPoint(event.clientX, event.clientY);
         if (!range) return;
 

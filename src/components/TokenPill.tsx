@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import { Theme } from '../theme';
 
 interface TokenPillProps {
   text: string;
@@ -14,13 +15,13 @@ export const TokenPill: React.FC<TokenPillProps> = ({ text, onPress }) => (
 
 const styles = StyleSheet.create({
   pill: { 
-    backgroundColor: '#252525',
+    backgroundColor: Theme.colors.card,
     paddingHorizontal: 12, 
     paddingVertical: 7, 
     margin: 3, 
-    borderRadius: 10,
+    borderRadius: Theme.radius.md,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: Theme.colors.border,
   } as ViewStyle,
-  pillText: { fontSize: 15, color: '#c8c0b0', fontWeight: '600' } as TextStyle,
+  pillText: { fontSize: 15, color: Theme.colors.text, fontWeight: '600' } as TextStyle,
 });

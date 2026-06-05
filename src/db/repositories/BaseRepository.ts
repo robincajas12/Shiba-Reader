@@ -15,6 +15,11 @@ export abstract class Repository<T extends { [key: string]: unknown }> {
         return result.rows as T[];
     }
 
+    public async deleteAll(): Promise<void> {
+        const sql = `DELETE FROM ${this.table.name};`;
+        await db.execute(sql);
+    }
+
     /**
      * 🚀 INSERCIÓN MASIVA REESCRITA (SÚPER OPTIMIZADA)
      * Recibe un array de arrays. Ejemplo: batches = [[5000 entidades], [5000 entidades]]

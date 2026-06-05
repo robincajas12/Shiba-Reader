@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TextStyle, ViewStyle } from 'react-native';
 import { StructuredContentNode } from '../types';
+import { Theme } from '../theme';
 
 interface StructuredContentProps {
   content: StructuredContentNode | StructuredContentNode[];
@@ -110,21 +111,21 @@ export const StructuredContent: React.FC<StructuredContentProps> = ({ content, i
 };
 
 const styles = StyleSheet.create({
-  textNode: { fontSize: 15, color: '#c8c0b0', lineHeight: 22 } as TextStyle,
-  spanText: { fontSize: 15, color: '#c8c0b0' } as TextStyle,
-  posTag: { fontSize: 12, color: '#8d8578', fontStyle: 'italic', marginRight: 5 } as TextStyle,
-  link: { color: '#90cdf4', textDecorationLine: 'underline' } as TextStyle,
+  textNode: { fontSize: 15, color: Theme.colors.text, lineHeight: 22 } as TextStyle,
+  spanText: { fontSize: 15, color: Theme.colors.text } as TextStyle,
+  posTag: { fontSize: 12, color: Theme.colors.textMuted, fontStyle: 'italic', marginRight: 5 } as TextStyle,
+  link: { color: Theme.colors.accent, textDecorationLine: 'underline' } as TextStyle,
   inlineWrap: { flexDirection: 'row', flexWrap: 'wrap' } as ViewStyle,
   listContainer: { marginVertical: 4 } as ViewStyle,
   listItem: { flexDirection: 'row', marginBottom: 10, alignItems: 'flex-start' } as ViewStyle,
-  bulletPoint: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#555', marginTop: 10, marginRight: 10 } as ViewStyle,
+  bulletPoint: { width: 4, height: 4, borderRadius: 2, backgroundColor: Theme.colors.secondary, marginTop: 10, marginRight: 10 } as ViewStyle,
   listItemContent: { flex: 1 } as ViewStyle,
   block: { marginVertical: 2 } as ViewStyle,
   senseBlock: { marginBottom: 12 } as ViewStyle,
-  extraInfoBlock: { marginTop: 10, padding: 12, backgroundColor: '#1c1c1c', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#333' } as ViewStyle,
+  extraInfoBlock: { marginTop: 10, padding: 12, backgroundColor: Theme.colors.surface, borderRadius: Theme.radius.md, borderLeftWidth: 3, borderLeftColor: Theme.colors.border } as ViewStyle,
   exampleSentence: { marginTop: 5, opacity: 0.8 } as ViewStyle,
   attributionLine: { marginTop: 15, opacity: 0.3 } as ViewStyle,
   rubyContainer: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 10, marginRight: 5 } as ViewStyle,
-  rubyBaseText: { fontSize: 16, color: '#c8c0b0' } as TextStyle,
-  rtText: { fontSize: 9, color: '#8d8578', position: 'absolute', top: -12, width: '100%', textAlign: 'center', fontWeight: 'bold' } as TextStyle,
+  rubyBaseText: { fontSize: 16, color: Theme.colors.text } as TextStyle,
+  rtText: { fontSize: 9, color: Theme.colors.textMuted, position: 'absolute', top: -12, width: '100%', textAlign: 'center', fontWeight: 'bold' } as TextStyle,
 });

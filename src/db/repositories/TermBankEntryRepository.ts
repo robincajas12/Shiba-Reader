@@ -6,22 +6,30 @@ export class TermBankEntryRepository extends Repository<TermBankEntry> {
     constructor() {
         super(TableTermBank);
     }
-    async findByTermsAndReadings(texts: string[]): Promise<TermBankEntry[]> {
-    if (texts.length === 0) return [];
-    
-    // Crea dinámicamente los "?, ?, ?" según cuántos candidatos haya
-    const placeholders = texts.map(() => '?').join(', ');
-    
-    const query = `
-        SELECT * FROM term_bank 
-        WHERE term IN (${placeholders}) 
-           OR reading IN (${placeholders})
-    `;
-    
-    // Pasamos el array de textos dos veces (uno para 'term IN' y otro para 'reading IN')
-    console.log('Executing Text:', texts);
-    const params = [...texts, ...texts]; 
-    
-    return (await db.execute(query, params)).rows as TermBankEntry[]; // O el método ejecutor que use tu BaseRepository
+
+async findByTermsAndReadings(candidates: string[]): Promise<TermBankEntry[]> {
+    if (!candidates || candidates.length === 0) return [];
+
+    // Limpiamos duplicados en JavaScript
+    const uniqueCandidates = [...new Set(candidates)].filter(Boolean);
+
+    // Construimos sub-queries individuales con "=" en vez de "IN"
+    // Esto obliga a SQLite a usar el índice de forma atómica para cada palabra
+    const termQueries = uniqueCandidates.map(() => `SELECT * FROM term_bank WHERE term = ?`);
+    const readingQueries = uniqueCandidates.map(() => `SELECT * FROM term_bank WHERE reading = ?`);
+
+    // Juntamos absolutamente todo con UNION ALL
+    const finalQuery = [...termQueries, ...readingQueries].join('\nUNION ALL\n');
+
+    // Los parámetros deben alinearse con el orden de las queries creadas
+    const params = [...uniqueCandidates, ...uniqueCandidates];
+
+    try {
+        const result = await db.execute(finalQuery, params);
+        return (await result.rows || []) as TermBankEntry[];
+    } catch (error) {
+        console.error("Error en query optimizada por bloques:", error);
+        return [];
+    }
 }
 }

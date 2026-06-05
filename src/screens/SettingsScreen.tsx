@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useDatabaseSeeding } from '../hooks/useDatabaseSeeding';
+import { Theme } from '../theme';
 
 export const SettingsScreen: React.FC = () => {
   const { 
@@ -21,7 +22,7 @@ export const SettingsScreen: React.FC = () => {
         
         {loadingSeeding ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={Theme.colors.accent} />
             <Text style={styles.loadingText}>Cargando base de datos... Por favor espera.</Text>
           </View>
         ) : (
@@ -55,14 +56,14 @@ export const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
+    backgroundColor: Theme.colors.background,
+    padding: Theme.spacing.lg,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#333',
+    marginBottom: Theme.spacing.xl,
+    color: Theme.colors.header,
   },
   section: {
     marginBottom: 35,
@@ -70,52 +71,52 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
+    color: Theme.colors.header,
+    marginBottom: Theme.spacing.sm,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 20,
+    color: Theme.colors.textMuted,
+    marginBottom: Theme.spacing.lg,
     lineHeight: 20,
   },
   buttonGroup: {
     gap: 12,
   },
   button: {
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: Theme.colors.surface,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.radius.md,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: Theme.colors.border,
     alignItems: 'center',
   },
   buttonText: {
     fontSize: 16,
-    color: '#495057',
+    color: Theme.colors.text,
     fontWeight: '500',
   },
   primaryButton: {
-    backgroundColor: '#28a745',
-    borderColor: '#218838',
+    backgroundColor: Theme.colors.success,
+    borderColor: Theme.colors.success,
   },
   primaryButtonText: {
-    color: '#fff',
+    color: Theme.colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
   loadingContainer: {
     alignItems: 'center',
-    padding: 20,
+    padding: Theme.spacing.lg,
   },
   loadingText: {
-    marginTop: 10,
-    color: '#666',
+    marginTop: Theme.spacing.sm,
+    color: Theme.colors.textMuted,
     fontSize: 14,
   },
   infoText: {
     fontSize: 14,
-    color: '#888',
+    color: Theme.colors.textMuted,
     marginBottom: 5,
   }
 });

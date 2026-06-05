@@ -15,17 +15,29 @@ export const useReaderLookup = () => {
   const [results, setResults] = useState<LookupResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [popup, setPopup] = useState<PopupState>({ visible: false, top: 0, left: 0 });
+  const [isScannerEnabled, setIsScannerEnabled] = useState<boolean>(true);
+
+  const toggleScanner = () => {
+    setIsScannerEnabled(prev => {
+      if (prev && popup.visible) {
+        setPopup(p => ({ ...p, visible: false }));
+      }
+      return !prev;
+    });
+  };
 
   const handleWebViewMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-
+      console.log("Mensaje recibido del WebView:", data);
       if (data.type === 'SCROLL') {
         if (popup.visible) setPopup(prev => ({ ...prev, visible: false }));
         return;
       }
 
       if (data.type === 'CLICK') {
+        if (!isScannerEnabled) return;
+
         const { sentence, charIndex, x, y } = data;
         if (!sentence) return;
 
@@ -64,6 +76,8 @@ export const useReaderLookup = () => {
     results,
     loading,
     popup,
+    isScannerEnabled,
+    toggleScanner,
     handleWebViewMessage,
     closePopup
   };

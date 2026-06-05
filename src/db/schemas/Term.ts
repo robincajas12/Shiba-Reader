@@ -29,8 +29,16 @@ export const TableTermBank: Table = {
     },
     indexes: [
         {
-            name: 'idx_term_bank_search',
-            columns: ['term', 'reading']
+            name: 'idx_term_bank_term',
+            columns: ['term']
+        },
+        {
+            name: 'idx_term_bank_reading',
+            columns: ['reading']
+        },
+        {
+            name: 'idx_term_bank_sequence',
+            columns: ['sequence']
         }
     ]
 };

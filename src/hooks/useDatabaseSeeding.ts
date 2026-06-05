@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { dbEngine } from '../db/engine';
 import { TermBankEntry } from '../db/schemas/Term';
-const termBank1 = require('../../dic/[JA-EN] jitendex-yomitan (2026-05-05)/term_bank_generated.json');
+const termBank1 = require('../../dic/[JA-EN] jitendex-yomitan (2026-05-05)/term_bank_2.json');
 
 export const useDatabaseSeeding = () => {
   const termRepository = useMemo(() => dbEngine.getRepository('TermBankEntryRepository'), []);

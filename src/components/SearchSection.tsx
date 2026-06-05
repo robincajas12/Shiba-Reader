@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { TokenPill } from './TokenPill';
+import { Theme } from '../theme';
 
 interface SearchSectionProps {
   text: string;
@@ -33,7 +34,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         value={text}
         onChangeText={setText}
         placeholder="Introduce texto japonés..."
-        placeholderTextColor="#8d8578"
+        placeholderTextColor={Theme.colors.textMuted}
       />
 
       <View style={styles.tokensWrapper}>
@@ -50,21 +51,21 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 };
 
 const styles = StyleSheet.create({
-  topSection: { paddingHorizontal: 20, paddingTop: 15 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
-  logo: { fontSize: 24, fontWeight: '800', color: '#e5dccb', marginRight: 10 },
-  divider: { flex: 1, height: 1, backgroundColor: '#333' },
+  topSection: { paddingHorizontal: Theme.spacing.lg, paddingTop: Theme.spacing.md },
+  brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Theme.spacing.md },
+  logo: { fontSize: 24, fontWeight: '800', color: Theme.colors.header, marginRight: Theme.spacing.sm },
+  divider: { flex: 1, height: 1, backgroundColor: Theme.colors.border },
   searchBox: {
-    backgroundColor: '#1c1c1c',
-    borderRadius: 15,
+    backgroundColor: Theme.colors.surface,
+    borderRadius: Theme.radius.lg,
     padding: 18,
     fontSize: 18,
-    color: '#c8c0b0',
+    color: Theme.colors.text,
     minHeight: 90,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: '#333',
-    fontFamily: 'Noto Serif JP',
+    borderColor: Theme.colors.border,
+    fontFamily: Theme.fonts.serif,
   },
-  tokensWrapper: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 15, marginBottom: 10 },
+  tokensWrapper: { flexDirection: 'row', flexWrap: 'wrap', marginTop: Theme.spacing.md, marginBottom: Theme.spacing.sm },
 });

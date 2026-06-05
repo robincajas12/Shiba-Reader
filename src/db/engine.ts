@@ -3,13 +3,18 @@ import { Table } from './types';
 import { Repository } from './repositories/BaseRepository';
 import { TermBankEntryRepository } from './repositories/TermBankEntryRepository';
 import { PruebaRepository } from './repositories/PruebaRepository';
+import { BookmarkRepository } from './repositories/BookmarkRepository';
+import { HistoryRepository } from './repositories/HistoryRepository';
 import { TableTermBank } from './schemas/Term';
 import { TablePrueba } from './schemas/Prueba';
+import { TableBookmark, TableHistory } from './schemas/Browser';
 
 // Definimos el mapa de tipos estricto para los repositorios
 interface RepositoryMap {
     'TermBankEntryRepository': TermBankEntryRepository;
     'PruebaRepository': PruebaRepository;
+    'BookmarkRepository': BookmarkRepository;
+    'HistoryRepository': HistoryRepository;
 }
 
 class DbEngine {
@@ -52,15 +57,24 @@ class DbEngine {
     getRepository<K extends keyof RepositoryMap>(repositoryName: K): RepositoryMap[K] {
         return this.repositories[repositoryName];
     }
+    
 }
 
 // Forzamos que la constante cumpla estrictamente con la interfaz RepositoryMap
 const Repositories: RepositoryMap = {
     'TermBankEntryRepository': new TermBankEntryRepository(),
-    'PruebaRepository': new PruebaRepository()
+    'PruebaRepository': new PruebaRepository(),
+    'BookmarkRepository': new BookmarkRepository(),
+    'HistoryRepository': new HistoryRepository()
 };
 
-const dbEngine = new DbEngine([TableTermBank, TablePrueba], Repositories);
+const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory], Repositories);
 dbEngine.createTables();
+async function verificarIndicesReales() {
+    // Le pedimos a SQLite que nos muestre todos los índices creados en la base de datos
+    const result = await db.execute("SELECT name, tbl_name FROM sqlite_master WHERE type='index';");
+    console.log("📊 ÍNDICES REALES EN EL DISCO:", JSON.stringify(await result.rows || result.rows));
+}
+dbEngine.createTables().then(() => verificarIndicesReales());
 
 export { dbEngine };
