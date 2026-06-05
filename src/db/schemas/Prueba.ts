@@ -1,4 +1,4 @@
-import { Schema, Table } from '../types';
+import { Table } from '../types';
 
 export type Prueba = {
     id: number;

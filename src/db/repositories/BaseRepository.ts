@@ -14,17 +14,57 @@ export abstract class Repository<T extends { [key: string]: unknown }> {
         const result = await db.execute(sql);
         return result.rows as T[];
     }
-    public async insertBatchMany(batches: T[][]): Promise<void> {
-        for (const entities of batches) {
-            const commands: SQLBatchTuple[] = entities.map(entity => {
-                const { sql, args } = this.getInsertQueryAndValues(entity);
-                return [sql, args as any[]]; // Added any[] cast for op-sqlite compatibility if needed
-            });
-            const res = await db.executeBatch(commands);
-            console.log("insert many in " + this.table.name + ": " + res.rowsAffected);
 
+    /**
+     * 🚀 INSERCIÓN MASIVA REESCRITA (SÚPER OPTIMIZADA)
+     * Recibe un array de arrays. Ejemplo: batches = [[5000 entidades], [5000 entidades]]
+     */
+    public async insertBatchMany(batches: T[][]): Promise<void> {
+        const columns = this.getColumns();
+        
+        // Optimizamos SQLite para escrituras masivas antes de iniciar el volcado
+        await db.execute("PRAGMA journal_mode = OFF;");
+        await db.execute("PRAGMA synchronous = OFF;");
+
+        try {
+            for (const entities of batches) {
+                if (entities.length === 0) continue;
+
+                // 1. Iniciamos una transacción limpia para este lote
+                await db.execute("BEGIN TRANSACTION;");
+
+                // 2. Construimos una ÚNICA sentencia SQL multi-fila
+                // Resultado: (?, ?, ?), (?, ?, ?), (?, ?, ?)...
+                const placeholders = entities.map(() => `(${columns.map(() => '?').join(', ')})`).join(', ');
+                const sql = `INSERT INTO ${this.table.name} (${columns.join(', ')}) VALUES ${placeholders};`;
+
+                // 3. Aplanamos todos los argumentos de todas las entidades en un solo array lineal
+                const args: any[] = [];
+                for (const entity of entities) {
+                    for (const col of columns) {
+                        args.push(entity[col as keyof T] ?? null);
+                    }
+                }
+
+                // 4. Se ejecuta una Sola vez por lote completo en lugar de miles de veces
+                const res = await db.execute(sql, args);
+                
+                // 5. Consolidamos los cambios en el disco duro físico del dispositivo
+                await db.execute("COMMIT;");
+
+                console.log(`[${this.table.name}] Lote insertado con éxito. Filas afectadas en este bloque: ${res.rowsAffected}`);
+            }
+        } catch (error) {
+            console.error(`[DB ERROR] Fallo masivo en ${this.table.name}, revirtiendo lote...`, error);
+            try { await db.execute("ROLLBACK;"); } catch (_) {}
+            throw error;
+        } finally {
+            // Devolvemos SQLite a su configuración segura y óptima para el modo lectura diario (WAL)
+            await db.execute("PRAGMA journal_mode = WAL;");
+            await db.execute("PRAGMA synchronous = NORMAL;");
         }
     }
+
     private getInsertQueryAndValues(entity: T) {
         const columns = this.getColumns();
 
@@ -40,12 +80,12 @@ export abstract class Repository<T extends { [key: string]: unknown }> {
 
         return { sql, args };
     }
-    public async insert(entity: T): Promise<void> {
 
+    public async insert(entity: T): Promise<void> {
         const { sql, args } = this.getInsertQueryAndValues(entity);
         const statement = await db.prepareStatement(sql);
 
-        await statement.bindSync(args as any[]); // Added any[] cast for op-sqlite compatibility if needed
+        await statement.bindSync(args as any[]); 
         await statement.execute();
     }
 
