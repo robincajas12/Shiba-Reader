@@ -1,14 +1,22 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useDatabaseSeeding } from '../hooks/useDatabaseSeeding';
+import { useDictionaryImport } from '../hooks/useDictionaryImport';
 import { Theme } from '../theme';
 
 export const SettingsScreen: React.FC = () => {
   const { 
     loadingSeeding, 
-    handleSeedDatabase, 
     handleVerifyDatabase 
   } = useDatabaseSeeding();
+
+  const {
+    importFromZip,
+    isImporting,
+    progress
+  } = useDictionaryImport();
+
+  const isLoading = loadingSeeding || isImporting;
 
   return (
     <View style={styles.container}>
@@ -17,21 +25,21 @@ export const SettingsScreen: React.FC = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Mantenimiento de Datos</Text>
         <Text style={styles.sectionDescription}>
-          Si es la primera vez que usas la app, debes cargar el diccionario en la base de datos local.
+          Importa diccionarios en formato ZIP (Yomitan/Jitendex) desde el almacenamiento de tu dispositivo.
         </Text>
         
-        {loadingSeeding ? (
+        {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={Theme.colors.accent} />
-            <Text style={styles.loadingText}>Cargando base de datos... Por favor espera.</Text>
+            <Text style={styles.loadingText}>{progress || 'Procesando... Por favor espera.'}</Text>
           </View>
         ) : (
           <View style={styles.buttonGroup}>
             <TouchableOpacity 
               style={[styles.button, styles.primaryButton]} 
-              onPress={handleSeedDatabase}
+              onPress={importFromZip}
             >
-              <Text style={styles.primaryButtonText}>Cargar Diccionario (Seed)</Text>
+              <Text style={styles.primaryButtonText}>Importar Diccionario (.zip)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
