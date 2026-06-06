@@ -5,9 +5,11 @@ import { TermBankEntryRepository } from './repositories/TermBankEntryRepository'
 import { PruebaRepository } from './repositories/PruebaRepository';
 import { BookmarkRepository } from './repositories/BookmarkRepository';
 import { HistoryRepository } from './repositories/HistoryRepository';
+import { VocabularyRepository } from './repositories/VocabularyRepository';
 import { TableTermBank } from './schemas/Term';
 import { TablePrueba } from './schemas/Prueba';
 import { TableBookmark, TableHistory } from './schemas/Browser';
+import { TableVocabulary } from './schemas/Vocabulary';
 
 // Definimos el mapa de tipos estricto para los repositorios
 interface RepositoryMap {
@@ -15,6 +17,7 @@ interface RepositoryMap {
     'PruebaRepository': PruebaRepository;
     'BookmarkRepository': BookmarkRepository;
     'HistoryRepository': HistoryRepository;
+    'VocabularyRepository': VocabularyRepository;
 }
 
 class DbEngine {
@@ -65,10 +68,11 @@ const Repositories: RepositoryMap = {
     'TermBankEntryRepository': new TermBankEntryRepository(),
     'PruebaRepository': new PruebaRepository(),
     'BookmarkRepository': new BookmarkRepository(),
-    'HistoryRepository': new HistoryRepository()
+    'HistoryRepository': new HistoryRepository(),
+    'VocabularyRepository': new VocabularyRepository()
 };
 
-const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory], Repositories);
+const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory, TableVocabulary], Repositories);
 dbEngine.createTables();
 async function verificarIndicesReales() {
     // Le pedimos a SQLite que nos muestre todos los índices creados en la base de datos

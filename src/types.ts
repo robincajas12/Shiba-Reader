@@ -18,6 +18,7 @@ export type StructuredContentNode =
       lang?: string;
       href?: string;
       title?: string;
+      id?: string; // ID temporal para selección de acepciones
     };
 
 /**

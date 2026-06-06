@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, ViewStyle, TextStyle } from 'react-native';
 import { StructuredContent } from './StructuredContent';
 import { DictionaryEntry, LookupCandidate } from '../types';
 import { Theme } from '../theme';
@@ -7,9 +7,16 @@ import { Theme } from '../theme';
 interface EntryCardProps {
   entry: DictionaryEntry;
   cand: LookupCandidate;
+  onToggleSense?: (id: string) => void;
+  selectedSenseIds?: Set<string>;
 }
 
-export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, cand }) => {
+export const EntryCard: React.FC<EntryCardProps> = React.memo(({ 
+  entry, 
+  cand, 
+  onToggleSense,
+  selectedSenseIds
+}) => {
   const [term, reading, tags, rules, , content] = entry;
   const tagList = (tags || '').split(' ').filter(Boolean);
 
@@ -20,8 +27,11 @@ export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, cand }) 
           <Text style={styles.mainTerm}>{term}</Text>
           {reading && reading !== term && <Text style={styles.reading}>{reading}</Text>}
         </View>
-        <View style={[styles.matchIndicator, cand.type === 'exact' ? styles.matchExact : styles.matchOther]}>
-          <Text style={styles.matchIndicatorText}>{cand.type.replace('-', ' ')}</Text>
+        
+        <View style={styles.headerActions}>
+          <View style={[styles.matchIndicator, cand.type === 'exact' ? styles.matchExact : styles.matchOther]}>
+            <Text style={styles.matchIndicatorText}>{cand.type.replace('-', ' ')}</Text>
+          </View>
         </View>
       </View>
 
@@ -39,7 +49,11 @@ export const EntryCard: React.FC<EntryCardProps> = React.memo(({ entry, cand }) 
       </View>
 
       <View style={styles.cardBody}>
-        <StructuredContent content={content} />
+        <StructuredContent 
+          content={content} 
+          onToggleSense={onToggleSense}
+          selectedSenseIds={selectedSenseIds}
+        />
       </View>
     </View>
   );
@@ -62,6 +76,31 @@ const styles = StyleSheet.create({
   termContainer: { flex: 1 } as ViewStyle,
   mainTerm: { fontSize: 22, fontWeight: 'bold', color: Theme.colors.header } as TextStyle,
   reading: { fontSize: 14, color: Theme.colors.textMuted, marginTop: -2 } as TextStyle,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  } as ViewStyle,
+  selectButton: {
+    backgroundColor: Theme.colors.border,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  } as ViewStyle,
+  selectedButton: {
+    backgroundColor: Theme.colors.primary,
+  } as ViewStyle,
+  selectButtonText: {
+    color: Theme.colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+  } as TextStyle,
+  cardSelected: {
+    borderColor: Theme.colors.primary,
+    backgroundColor: Theme.colors.card, 
+  } as ViewStyle,
   matchIndicator: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: Theme.radius.sm } as ViewStyle,
   matchExact: { backgroundColor: Theme.colors.primary } as ViewStyle,
   matchOther: { backgroundColor: Theme.colors.secondary } as ViewStyle,

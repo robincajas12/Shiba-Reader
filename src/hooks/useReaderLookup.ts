@@ -9,12 +9,13 @@ interface PopupState {
   visible: boolean;
   top: number;
   left: number;
+  sentence?: string;
 }
 
 export const useReaderLookup = () => {
   const [results, setResults] = useState<LookupResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [popup, setPopup] = useState<PopupState>({ visible: false, top: 0, left: 0 });
+  const [popup, setPopup] = useState<PopupState>({ visible: false, top: 0, left: 0, sentence: '' });
   const [isScannerEnabled, setIsScannerEnabled] = useState<boolean>(true);
 
   // 🚀 Guard para evitar búsquedas triples/redundantes (Debounce manual)
@@ -84,7 +85,8 @@ export const useReaderLookup = () => {
         setPopup({
           visible: true,
           top: topPos,
-          left: leftPos
+          left: leftPos,
+          sentence: sentence
         });
 
         try {

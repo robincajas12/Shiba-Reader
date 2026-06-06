@@ -124,6 +124,7 @@ export const ReaderScreen: React.FC = () => {
           visible={popup.visible}
           top={popup.top}
           left={popup.left}
+          sentence={popup.sentence}
           results={results}
           loading={loading}
           onClose={closePopup}

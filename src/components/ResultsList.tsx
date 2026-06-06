@@ -8,9 +8,17 @@ interface ResultsListProps {
   results: LookupResult[];
   loading: boolean;
   hasInput: boolean;
+  selectedSenseIds: Set<string>;
+  onToggleSense: (id: string) => void;
 }
 
-export const ResultsList: React.FC<ResultsListProps> = React.memo(({ results, loading, hasInput }) => {
+export const ResultsList: React.FC<ResultsListProps> = React.memo(({ 
+  results, 
+  loading, 
+  hasInput, 
+  selectedSenseIds,
+  onToggleSense 
+}) => {
   return (
     <View style={styles.resultsContainer}>
       <View style={styles.resultsMeta}>
@@ -32,12 +40,19 @@ export const ResultsList: React.FC<ResultsListProps> = React.memo(({ results, lo
           </View>
         )}
         {!loading && results.map((m, i) => (
-          <EntryCard key={i} entry={m.entry} cand={m.cand} />
+          <EntryCard 
+            key={i} 
+            entry={m.entry} 
+            cand={m.cand} 
+            onToggleSense={onToggleSense}
+            selectedSenseIds={selectedSenseIds}
+          />
         ))}
       </View>
     </View>
   );
 });
+
 
 const styles = StyleSheet.create({
   resultsContainer: {
