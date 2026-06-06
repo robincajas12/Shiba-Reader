@@ -11,13 +11,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [themeName, setThemeName] = useState<ThemeName>('blueNight');
+  const [themeName, setThemeName] = useState<ThemeName>('light');
   const settingsRepo = dbEngine.getRepository('SettingsRepository');
 
   useEffect(() => {
     const loadTheme = async () => {
       try {
-        const savedTheme = await settingsRepo.get('theme_name', 'blueNight');
+        const savedTheme = await settingsRepo.get('theme_name', 'light');
         if (savedTheme && Themes[savedTheme as ThemeName]) {
           setThemeName(savedTheme as ThemeName);
         }

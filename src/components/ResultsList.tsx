@@ -25,20 +25,20 @@ export const ResultsList: React.FC<ResultsListProps> = React.memo(({
   return (
     <View style={dynamicStyles.resultsContainer}>
       <View style={dynamicStyles.resultsMeta}>
-        <Text style={dynamicStyles.resultsLabel}>DICCIONARIO</Text>
+        <Text style={dynamicStyles.resultsLabel}>DICTIONARY</Text>
         {loading && <ActivityIndicator size="small" color={theme.colors.textMuted} />}
       </View>
 
       <View style={dynamicStyles.resultsScroll}>
         {loading && results.length === 0 && (
           <View style={dynamicStyles.emptyState}>
-            <Text style={dynamicStyles.emptyStateText}>Buscando definición...</Text>
+            <Text style={dynamicStyles.emptyStateText}>Searching definition...</Text>
           </View>
         )}
         {!loading && results.length === 0 && (
           <View style={dynamicStyles.emptyState}>
             <Text style={dynamicStyles.emptyStateText}>
-              {hasInput ? "Toca una palabra arriba para ver su significado" : "Escribe algo para empezar"}
+              {hasInput ? "Tap a word above to see its meaning" : "Type something to start"}
             </Text>
           </View>
         )}

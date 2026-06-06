@@ -36,7 +36,7 @@ const VocabularyItem: React.FC<{ item: VocabularyEntry; onRemove: (id: number) =
             </View>
 
             <View style={dynamicStyles.sentenceContainer}>
-                <Text style={dynamicStyles.sentenceLabel}>Contexto:</Text>
+                <Text style={dynamicStyles.sentenceLabel}>Context:</Text>
                 <Text style={dynamicStyles.sentenceText}>{item.sentence}</Text>
             </View>
 
@@ -45,7 +45,7 @@ const VocabularyItem: React.FC<{ item: VocabularyEntry; onRemove: (id: number) =
                 onPress={() => setShowDefinition(!showDefinition)}
             >
                 <Text style={dynamicStyles.toggleButtonText}>
-                    {showDefinition ? 'ocultar definición ▲' : 'ver definición ▼'}
+                    {showDefinition ? 'hide definition ▲' : 'show definition ▼'}
                 </Text>
             </TouchableOpacity>
 
@@ -85,9 +85,9 @@ export const VocabularyScreen: React.FC = () => {
         <View style={dynamicStyles.container}>
             <View style={dynamicStyles.goalContainer}>
                 <View style={dynamicStyles.goalHeader}>
-                    <Text style={dynamicStyles.goalTitle}>Meta Diaria</Text>
+                    <Text style={dynamicStyles.goalTitle}>Daily Goal</Text>
                     <Text style={dynamicStyles.goalCount}>
-                        {todayCount} / {dailyGoal} <Text style={{ fontSize: 12 }}>palabras</Text>
+                        {todayCount} / {dailyGoal} <Text style={{ fontSize: 12 }}>words</Text>
                     </Text>
                 </View>
                 <View style={dynamicStyles.progressBarBg}>
@@ -97,7 +97,7 @@ export const VocabularyScreen: React.FC = () => {
                     ]} />
                 </View>
                 {isGoalReached && (
-                    <Text style={dynamicStyles.goalReachedText}>🎉 ¡Meta alcanzada! ¡Buen trabajo!</Text>
+                    <Text style={dynamicStyles.goalReachedText}>🎉 Goal reached! Good job!</Text>
                 )}
             </View>
 
@@ -109,8 +109,8 @@ export const VocabularyScreen: React.FC = () => {
                 ListEmptyComponent={
                     <View style={dynamicStyles.emptyContainer}>
                         <Text style={dynamicStyles.emptyEmoji}>📚</Text>
-                        <Text style={dynamicStyles.emptyText}>Aún no has guardado ninguna palabra.</Text>
-                        <Text style={dynamicStyles.emptySubtext}>Usa el botón "+" en el lector para guardar vocabulario con su contexto.</Text>
+                        <Text style={dynamicStyles.emptyText}>You haven't saved any words yet.</Text>
+                        <Text style={dynamicStyles.emptySubtext}>Use the "+" button in the reader to save vocabulary with its context.</Text>
                     </View>
                 }
             />

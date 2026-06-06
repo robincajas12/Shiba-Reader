@@ -16,8 +16,8 @@ const handleSeedDatabase = async () => {
 
     if (existingData.length > 60) {
       Alert.alert(
-        'Base de datos activa',
-        'La base de datos ya contiene palabras.'
+        'Database active',
+        'The database already contains words.'
       );
       return;
     }
@@ -51,14 +51,14 @@ const handleSeedDatabase = async () => {
     await termRepository.insertBatchMany(batches);
 
     Alert.alert(
-      'Éxito',
-      `Se insertaron ${entities.length} palabras`
+      'Success',
+      `${entities.length} words inserted`
     );
   } catch (error) {
     console.error(error);
     Alert.alert(
       'Error',
-      'Fallo al migrar los datos a SQLite.'
+      'Failed to migrate data to SQLite.'
     );
   } finally {
     setLoadingSeeding(false);
@@ -67,7 +67,7 @@ const handleSeedDatabase = async () => {
 
   const handleVerifyDatabase = async () => {
     const countData = await termRepository.getAll();
-    Alert.alert('Total actual', `Palabras en la DB: ${countData.length}`);
+    Alert.alert('Current total', `Words in DB: ${countData.length}`);
   };
 
   return {

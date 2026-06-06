@@ -26,12 +26,12 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <ScrollView style={dynamicStyles.container}>
-      <Text style={dynamicStyles.title}>Configuración</Text>
+      <Text style={dynamicStyles.title}>Settings</Text>
 
       <View style={dynamicStyles.section}>
-        <Text style={dynamicStyles.sectionTitle}>Meta Diaria</Text>
+        <Text style={dynamicStyles.sectionTitle}>Daily Goal</Text>
         <Text style={dynamicStyles.sectionDescription}>
-          Establece cuántas palabras nuevas quieres aprender cada día.
+          Set how many new words you want to learn each day.
         </Text>
         <View style={dynamicStyles.goalInputContainer}>
           {[5, 10, 15, 20, 30].map((val) => (
@@ -53,7 +53,7 @@ export const SettingsScreen: React.FC = () => {
       </View>
 
       <View style={dynamicStyles.section}>
-        <Text style={dynamicStyles.sectionTitle}>Tema de la Aplicación</Text>
+        <Text style={dynamicStyles.sectionTitle}>App Theme</Text>
         <View style={dynamicStyles.themeGrid}>
           {(Object.keys(Themes) as ThemeName[]).map((name) => (
             <TouchableOpacity
@@ -75,15 +75,15 @@ export const SettingsScreen: React.FC = () => {
       </View>
       
       <View style={dynamicStyles.section}>
-        <Text style={dynamicStyles.sectionTitle}>Mantenimiento de Datos</Text>
+        <Text style={dynamicStyles.sectionTitle}>Data Maintenance</Text>
         <Text style={dynamicStyles.sectionDescription}>
-          Importa diccionarios en formato ZIP (Yomitan/Jitendex) desde el almacenamiento de tu dispositivo.
+          Import dictionaries in ZIP format (Yomitan/Jitendex) from your device storage.
         </Text>
         
         {isLoading ? (
           <View style={dynamicStyles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.accent} />
-            <Text style={dynamicStyles.loadingText}>{progress || 'Procesando... Por favor espera.'}</Text>
+            <Text style={dynamicStyles.loadingText}>{progress || 'Processing... Please wait.'}</Text>
           </View>
         ) : (
           <View style={dynamicStyles.buttonGroup}>
@@ -91,23 +91,23 @@ export const SettingsScreen: React.FC = () => {
               style={[dynamicStyles.button, dynamicStyles.primaryButton]} 
               onPress={importFromZip}
             >
-              <Text style={dynamicStyles.primaryButtonText}>Importar Diccionario (.zip)</Text>
+              <Text style={dynamicStyles.primaryButtonText}>Import Dictionary (.zip)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={dynamicStyles.button} 
               onPress={handleVerifyDatabase}
             >
-              <Text style={dynamicStyles.buttonText}>Verificar Estado de DB</Text>
+              <Text style={dynamicStyles.buttonText}>Verify DB Status</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
 
       <View style={dynamicStyles.section}>
-        <Text style={dynamicStyles.sectionTitle}>Acerca de</Text>
+        <Text style={dynamicStyles.sectionTitle}>About</Text>
         <Text style={dynamicStyles.infoText}>Ringo Reader v0.1.0</Text>
-        <Text style={dynamicStyles.infoText}>Desarrollado para lectores de Japonés.</Text>
+        <Text style={dynamicStyles.infoText}>Developed for Japanese readers.</Text>
       </View>
     </ScrollView>
   );

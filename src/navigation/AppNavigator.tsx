@@ -45,17 +45,17 @@ const MoreNavigator = () => {
       <Stack.Screen 
         name="More" 
         component={MoreScreen} 
-        options={{ title: 'Más' }} 
+        options={{ title: 'More' }} 
       />
       <Stack.Screen 
         name="Search" 
         component={SearchScreen} 
-        options={{ title: 'Buscar' }} 
+        options={{ title: 'Search' }} 
       />
       <Stack.Screen 
         name="Settings" 
         component={SettingsScreen} 
-        options={{ title: 'Ajustes' }} 
+        options={{ title: 'Settings' }} 
       />
     </Stack.Navigator>
   );
@@ -114,13 +114,13 @@ export const AppNavigator = () => {
       <Tab.Screen 
         name="Home" 
         component={HomeScreen} 
-        options={{ title: 'Inicio' }}
+        options={{ title: 'Home' }}
       />
       <Tab.Screen 
         name="Reader" 
         component={ReaderScreen} 
         options={{ 
-          title: 'Lector',
+          title: 'Reader',
           headerShown: false // We use our own header in ReaderScreen
         }}
         initialParams={{ url: 'https://www.google.com' }}
@@ -128,13 +128,13 @@ export const AppNavigator = () => {
       <Tab.Screen 
         name="Vocabulary" 
         component={VocabularyScreen} 
-        options={{ title: 'Vocabulario' }}
+        options={{ title: 'Vocabulary' }}
       />
       <Tab.Screen 
         name="MoreStack" 
         component={MoreNavigator} 
         options={{ 
-          title: 'Más',
+          title: 'More',
           headerShown: false // The stack has its own header
         }}
       />

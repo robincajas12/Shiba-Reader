@@ -36,13 +36,13 @@ export const HomeScreen: React.FC = () => {
     <ScrollView style={dynamicStyles.container}>
       <View style={dynamicStyles.hero}>
         <Text style={dynamicStyles.heroTitle}>Ringo Reader</Text>
-        <Text style={dynamicStyles.heroSubtitle}>Tu puerta a la lectura en Japonés</Text>
+        <Text style={dynamicStyles.heroSubtitle}>Your gateway to Japanese reading</Text>
       </View>
 
       <View style={dynamicStyles.searchSection}>
         <TextInput
           style={dynamicStyles.input}
-          placeholder="Introduce una URL"
+          placeholder="Enter a URL"
           placeholderTextColor={theme.colors.textMuted}
           value={url}
           onChangeText={setUrl}
@@ -54,13 +54,13 @@ export const HomeScreen: React.FC = () => {
           style={dynamicStyles.goButton}
           onPress={() => handleOpenUrl(url)}
         >
-          <Text style={dynamicStyles.goButtonText}>Ir</Text>
+          <Text style={dynamicStyles.goButtonText}>Go</Text>
         </TouchableOpacity>
       </View>
 
       <View style={dynamicStyles.section}>
         <View style={dynamicStyles.sectionHeader}>
-          <Text style={dynamicStyles.sectionTitle}>Favoritos</Text>
+          <Text style={dynamicStyles.sectionTitle}>Bookmarks</Text>
           <TouchableOpacity onPress={refreshBrowserData}>
             <Text style={dynamicStyles.refreshEmoji}>🔄</Text>
           </TouchableOpacity>
@@ -88,10 +88,10 @@ export const HomeScreen: React.FC = () => {
 
       <View style={dynamicStyles.section}>
         <View style={dynamicStyles.sectionHeader}>
-          <Text style={dynamicStyles.sectionTitle}>Recientes</Text>
+          <Text style={dynamicStyles.sectionTitle}>Recent</Text>
           {history.length > 0 && (
             <TouchableOpacity onPress={clearHistory}>
-              <Text style={dynamicStyles.clearAllText}>Borrar todo</Text>
+              <Text style={dynamicStyles.clearAllText}>Clear all</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -107,7 +107,7 @@ export const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={dynamicStyles.emptyText}>No hay historial reciente</Text>
+          <Text style={dynamicStyles.emptyText}>No recent history</Text>
         )}
       </View>
     </ScrollView>

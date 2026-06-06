@@ -16,22 +16,22 @@ export const MoreScreen: React.FC = () => {
 
   const menuItems = [
     {
-      title: 'Buscar',
+      title: 'Search',
       icon: '🔍',
-      description: 'Buscar términos en los diccionarios instalados.',
+      description: 'Search terms in installed dictionaries.',
       onPress: () => navigation.navigate('Search'),
     },
     {
-      title: 'Ajustes',
+      title: 'Settings',
       icon: '⚙️',
-      description: 'Configuración, temas y gestión de diccionarios.',
+      description: 'Configuration, themes, and dictionary management.',
       onPress: () => navigation.navigate('Settings'),
     },
   ];
 
   return (
     <ScrollView style={dynamicStyles.container}>
-      <Text style={dynamicStyles.title}>Más Opciones</Text>
+      <Text style={dynamicStyles.title}>More Options</Text>
       
       <View style={dynamicStyles.grid}>
         {menuItems.map((item, index) => (

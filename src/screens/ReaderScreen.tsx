@@ -40,7 +40,7 @@ export const ReaderScreen: React.FC = () => {
       const bookmark = bookmarks.find(b => b.url === currentUrl);
       if (bookmark) await removeBookmark(bookmark.id);
     } else {
-      await addBookmark('Nueva Página', currentUrl);
+      await addBookmark('New Page', currentUrl);
     }
   };
 
@@ -137,7 +137,7 @@ export const ReaderScreen: React.FC = () => {
         {isLoading && progress < 0.9 && (
           <View style={dynamicStyles.loadingOverlay} pointerEvents="none">
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={dynamicStyles.loadingText}>Cargando página...</Text>
+            <Text style={dynamicStyles.loadingText}>Loading page...</Text>
           </View>
         )}
 

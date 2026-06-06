@@ -36,7 +36,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         multiline
         value={text}
         onChangeText={setText}
-        placeholder="Introduce texto japonés..."
+        placeholder="Enter Japanese text..."
         placeholderTextColor={theme.colors.textMuted}
       />
 
