@@ -7,6 +7,7 @@ interface ReaderProps {
   uri: string;
   onMessage: (event: any) => void;
   onNavigationStateChange?: (navState: any) => void;
+  onLoadProgress?: (event: any) => void;
   isScannerEnabled?: boolean;
 }
 
@@ -20,6 +21,7 @@ export const Reader = forwardRef<ReaderRef, ReaderProps>(({
   uri, 
   onMessage, 
   onNavigationStateChange,
+  onLoadProgress,
   isScannerEnabled = true 
 }, ref) => {
   const webViewRef = useRef<WebView>(null);
@@ -44,6 +46,7 @@ export const Reader = forwardRef<ReaderRef, ReaderProps>(({
         source={{ uri }}
         onMessage={onMessage}
         onNavigationStateChange={onNavigationStateChange}
+        onLoadProgress={onLoadProgress}
         style={{ flex: 1 }}
       />
     </View>

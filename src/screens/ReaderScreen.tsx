@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 
 // Components
@@ -27,6 +27,10 @@ export const ReaderScreen: React.FC = () => {
   const [currentUrl, setCurrentUrl] = React.useState(initialUrl);
   const [canGoBack, setCanGoBack] = React.useState(false);
   const [canGoForward, setCanGoForward] = React.useState(false);
+  
+  // Loading states
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [progress, setProgress] = React.useState(0);
 
   const isFav = bookmarks.some(b => b.url === currentUrl);
 
@@ -42,6 +46,7 @@ export const ReaderScreen: React.FC = () => {
   const handleNavigationStateChange = (navState: any) => {
     setCanGoBack(navState.canGoBack);
     setCanGoForward(navState.canGoForward);
+    setIsLoading(navState.loading);
     
     if (navState.url && navState.url !== currentUrl) {
       setCurrentUrl(navState.url);
@@ -109,6 +114,11 @@ export const ReaderScreen: React.FC = () => {
             {isFav ? '★' : '☆'}
           </Text>
         </TouchableOpacity>
+
+        {/* Progress Bar */}
+        {isLoading && (
+          <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
+        )}
       </View>
 
       <View style={styles.mainContent}>
@@ -117,8 +127,17 @@ export const ReaderScreen: React.FC = () => {
           uri={initialUrl}
           onMessage={handleWebViewMessage}
           onNavigationStateChange={handleNavigationStateChange}
+          onLoadProgress={(e: any) => setProgress(e.nativeEvent.progress)}
           isScannerEnabled={isScannerEnabled}
         />
+
+        {isLoading && progress < 0.9 && (
+          <View style={styles.loadingOverlay} pointerEvents="none">
+            <ActivityIndicator size="large" color={Theme.colors.primary} />
+            <Text style={styles.loadingText}>Cargando página...</Text>
+          </View>
+        )}
+
 
         <DictionaryPopup 
           visible={popup.visible}
@@ -201,5 +220,25 @@ const styles = StyleSheet.create({
   mainContent: { 
     flex: 1, 
     position: 'relative' 
+  },
+  progressBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    height: 3,
+    backgroundColor: Theme.colors.primary,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 14,
+    color: Theme.colors.textMuted,
+    fontWeight: '500',
   },
 });

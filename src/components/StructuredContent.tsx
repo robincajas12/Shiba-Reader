@@ -1,37 +1,59 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { StyleSheet, Text, View, TextStyle, ViewStyle, TouchableOpacity } from 'react-native';
 import { StructuredContentNode } from '../types';
 import { Theme } from '../theme';
 
+// 1. Contexto para evitar re-renderizar todo el árbol
+interface SelectionContextType {
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+  isSelectionEnabled: boolean;
+}
+
+const SelectionContext = createContext<SelectionContextType>({
+  selectedIds: new Set(),
+  onToggle: () => {},
+  isSelectionEnabled: false
+});
+
 interface StructuredContentProps {
   content: StructuredContentNode | StructuredContentNode[];
   isInsideRuby?: boolean;
+  // Estos ahora son opcionales y solo se usan para inicializar el contexto si es necesario
   onToggleSense?: (id: string) => void;
-  isSelected?: boolean; // Prop para saber si este nodo específico está seleccionado
   selectedSenseIds?: Set<string>;
 }
 
 /**
- * Componente interno para manejar la lógica de selección sin re-renderizar todo
+ * Indicador de selección que consume el contexto directamente
  */
-const SelectionIndicator = React.memo(({ isSelected, onToggle, isSmall = false }: { isSelected: boolean, onToggle: () => void, isSmall?: boolean }) => (
-  <TouchableOpacity 
-    style={[
-      isSmall ? styles.liCheckbox : styles.checkbox, 
-      isSelected && (isSmall ? styles.liCheckboxSelected : styles.checkboxSelected)
-    ]} 
-    onPress={onToggle}
-    activeOpacity={0.7}
-  >
-    {isSelected && <Text style={isSmall ? styles.liCheckboxTick : styles.checkboxTick}>✓</Text>}
-  </TouchableOpacity>
-));
+const SelectionIndicator = React.memo(({ id, isSmall = false }: { id: string, isSmall?: boolean }) => {
+  const { selectedIds, onToggle, isSelectionEnabled } = useContext(SelectionContext);
+  
+  if (!isSelectionEnabled) return null;
+  
+  const isSelected = selectedIds.has(id);
 
-export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({ 
+  return (
+    <TouchableOpacity 
+      style={[
+        isSmall ? styles.liCheckbox : styles.checkbox, 
+        isSelected && (isSmall ? styles.liCheckboxSelected : styles.checkboxSelected)
+      ]} 
+      onPress={() => onToggle(id)}
+      activeOpacity={0.7}
+    >
+      {isSelected && <Text style={isSmall ? styles.liCheckboxTick : styles.checkboxTick}>✓</Text>}
+    </TouchableOpacity>
+  );
+});
+
+/**
+ * Componente principal recursivo (ahora mucho más ligero)
+ */
+const ContentRenderer: React.FC<{ content: StructuredContentNode | StructuredContentNode[], isInsideRuby?: boolean }> = React.memo(({ 
   content, 
-  isInsideRuby = false,
-  onToggleSense,
-  selectedSenseIds
+  isInsideRuby = false
 }) => {
   if (!content) return null;
 
@@ -47,68 +69,29 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
     if (allInline) {
       return (
         <Text style={styles.inlineWrap}>
-          {content.map((item, i) => (
-            <StructuredContent 
-              key={i} 
-              content={item} 
-              isInsideRuby={isInsideRuby} 
-              onToggleSense={onToggleSense}
-              selectedSenseIds={selectedSenseIds}
-            />
-          ))}
+          {content.map((item, i) => <ContentRenderer key={i} content={item} isInsideRuby={isInsideRuby} />)}
         </Text>
       );
     }
-    return (
-      <>
-        {content.map((item, i) => (
-          <StructuredContent 
-            key={i} 
-            content={item} 
-            isInsideRuby={isInsideRuby}
-            onToggleSense={onToggleSense}
-            selectedSenseIds={selectedSenseIds}
-          />
-        ))}
-      </>
-    );
+    return <>{content.map((item, i) => <ContentRenderer key={i} content={item} isInsideRuby={isInsideRuby} />)}</>;
   }
 
   if (typeof content === 'object') {
     if ('type' in content && content.type === 'structured-content') {
-      return (
-        <StructuredContent 
-          content={content.content as StructuredContentNode} 
-          onToggleSense={onToggleSense}
-          selectedSenseIds={selectedSenseIds}
-        />
-      );
+      return <ContentRenderer content={content.content as StructuredContentNode} />;
     }
 
     const { tag, content: innerContent, text: nodeText, data, id } = content;
     const role = data?.content;
 
-    // Renderizado de bloque de significado (Sense)
     if (role === 'sense') {
-      const isSelected = id ? selectedSenseIds?.has(id) : false;
       return (
-        <View style={[styles.block, styles.senseBlock, isSelected && styles.selectedSense]}>
+        <View style={[styles.block, styles.senseBlock]}>
           <View style={styles.senseSelector}>
-            {id && onToggleSense && (
-              <SelectionIndicator 
-                isSelected={isSelected} 
-                onToggle={() => onToggleSense(id)} 
-              />
-            )}
+            {id && <SelectionIndicator id={id} />}
             <View style={{ flex: 1 }}>
               {nodeText && <Text style={styles.textNode}>{nodeText}</Text>}
-              {innerContent && (
-                <StructuredContent 
-                  content={innerContent as StructuredContentNode} 
-                  onToggleSense={onToggleSense}
-                  selectedSenseIds={selectedSenseIds}
-                />
-              )}
+              {innerContent && <ContentRenderer content={innerContent as StructuredContentNode} />}
             </View>
           </View>
         </View>
@@ -116,34 +99,20 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
     }
 
     if (tag === 'li') {
-      const isSelected = id ? selectedSenseIds?.has(id) : false;
       return (
         <View style={styles.listItem}>
-          {id && onToggleSense ? (
-            <SelectionIndicator 
-                isSelected={isSelected} 
-                onToggle={() => onToggleSense(id)} 
-                isSmall={true}
-            />
-          ) : (
-            <View style={styles.bulletPoint} />
-          )}
+          {id ? <SelectionIndicator id={id} isSmall={true} /> : <View style={styles.bulletPoint} />}
           <View style={styles.listItemContent}>
-            <StructuredContent 
-              content={innerContent as StructuredContentNode} 
-              onToggleSense={onToggleSense}
-              selectedSenseIds={selectedSenseIds}
-            />
+            {innerContent && <ContentRenderer content={innerContent as StructuredContentNode} />}
           </View>
         </View>
       );
     }
 
-    // Resto de etiquetas...
     if (tag === 'ruby') {
       return (
         <View style={styles.rubyContainer}>
-          <StructuredContent content={innerContent as StructuredContentNode} isInsideRuby={true} />
+          <ContentRenderer content={innerContent as StructuredContentNode} isInsideRuby={true} />
         </View>
       );
     }
@@ -151,7 +120,7 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
     if (tag === 'rt') {
       return (
         <Text style={styles.rtText}>
-          {nodeText || <StructuredContent content={innerContent as StructuredContentNode} />}
+          {nodeText || <ContentRenderer content={innerContent as StructuredContentNode} />}
         </Text>
       );
     }
@@ -159,11 +128,7 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
     if (tag === 'ul' || role === 'sense-groups' || role === 'sense-group') {
       return (
         <View style={styles.listContainer}>
-          <StructuredContent 
-            content={innerContent as StructuredContentNode} 
-            onToggleSense={onToggleSense}
-            selectedSenseIds={selectedSenseIds}
-          />
+          <ContentRenderer content={innerContent as StructuredContentNode} />
         </View>
       );
     }
@@ -177,7 +142,7 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
       const isTag = data?.class === 'tag';
       return (
         <Text style={isTag ? styles.posTag : styles.spanText}>
-          {nodeText || <StructuredContent content={innerContent as StructuredContentNode} />}
+          {nodeText || <ContentRenderer content={innerContent as StructuredContentNode} />}
         </Text>
       );
     }
@@ -185,7 +150,7 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
     if (tag === 'a') {
       return (
         <Text style={styles.link}>
-          {nodeText || <StructuredContent content={innerContent as StructuredContentNode} />}
+          {nodeText || <ContentRenderer content={innerContent as StructuredContentNode} />}
         </Text>
       );
     }
@@ -193,22 +158,34 @@ export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({
     return (
       <View style={layoutStyles}>
         {nodeText && <Text style={styles.textNode}>{nodeText}</Text>}
-        {innerContent && (
-          <StructuredContent 
-            content={innerContent as StructuredContentNode} 
-            onToggleSense={onToggleSense}
-            selectedSenseIds={selectedSenseIds}
-          />
-        )}
+        {innerContent && <ContentRenderer content={innerContent as StructuredContentNode} />}
       </View>
     );
   }
 
   return null;
-}, (prev, next) => {
-    // Optimización crítica: Solo re-renderizar si el contenido cambia 
-    // o si el conjunto de IDs seleccionados es diferente
-    return prev.content === next.content && prev.selectedSenseIds === next.selectedSenseIds;
+});
+
+/**
+ * Wrapper que proporciona el contexto si es necesario
+ */
+export const StructuredContent: React.FC<StructuredContentProps> = React.memo(({ 
+  content, 
+  isInsideRuby = false,
+  onToggleSense,
+  selectedSenseIds
+}) => {
+  const contextValue = useMemo(() => ({
+    selectedIds: selectedSenseIds || new Set<string>(),
+    onToggle: onToggleSense || (() => {}),
+    isSelectionEnabled: !!onToggleSense
+  }), [selectedSenseIds, onToggleSense]);
+
+  return (
+    <SelectionContext.Provider value={contextValue}>
+      <ContentRenderer content={content} isInsideRuby={isInsideRuby} />
+    </SelectionContext.Provider>
+  );
 });
 
 const styles = StyleSheet.create({
@@ -223,7 +200,6 @@ const styles = StyleSheet.create({
   listItemContent: { flex: 1 } as ViewStyle,
   block: { marginVertical: 2 } as ViewStyle,
   senseBlock: { marginBottom: 12, padding: 4, borderRadius: Theme.radius.md } as ViewStyle,
-  selectedSense: { backgroundColor: Theme.colors.card + '40' } as ViewStyle,
   extraInfoBlock: { marginTop: 10, padding: 12, backgroundColor: Theme.colors.surface, borderRadius: Theme.radius.md, borderLeftWidth: 3, borderLeftColor: Theme.colors.border } as ViewStyle,
   exampleSentence: { marginTop: 5, opacity: 0.8 } as ViewStyle,
   attributionLine: { marginTop: 15, opacity: 0.3 } as ViewStyle,
