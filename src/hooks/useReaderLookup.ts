@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Dimensions, PixelRatio, Platform } from 'react-native';
 import { lookupAtCharacterIndex } from '../dictionaryUtils';
 import { LookupResult } from '../types';
@@ -16,20 +16,21 @@ export const useReaderLookup = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [popup, setPopup] = useState<PopupState>({ visible: false, top: 0, left: 0 });
   const [isScannerEnabled, setIsScannerEnabled] = useState<boolean>(true);
+
+  // 🚀 Guard para evitar búsquedas triples/redundantes (Debounce manual)
+  const lastLookupTime = useRef(0);
+
   // 🛠️ ORDENAMIENTO POR LONGITUD DEL TÉRMINO (De mayor a menor)
   const sortedResults = useMemo<LookupResult[]>(() => {
     if (!results || results.length === 0) return [];
 
-    // Creamos una copia con [...] porque .sort() muta el array original
     return [...results].sort((a, b) => {
-      // Accedemos a la posición [0] de la tupla DictionaryEntry que representa el 'term'
       const lengthA = a.entry[0] ? a.entry[0].length : 0;
       const lengthB = b.entry[0] ? b.entry[0].length : 0;
-
-      // Restamos B - A para que las strings más largas queden arriba del todo
       return lengthB - lengthA;
     });
   }, [results]);
+
   const toggleScanner = () => {
     setIsScannerEnabled(prev => {
       if (prev && popup.visible) {
@@ -51,32 +52,33 @@ export const useReaderLookup = () => {
       if (data.type === 'CLICK') {
         if (!isScannerEnabled) return;
 
+        // 🚀 EVITAR TRIPLE BÚSQUEDA: Si la última fue hace menos de 300ms, ignorar.
+        const now = Date.now();
+        if (now - lastLookupTime.current < 300) {
+            console.log("Ignorando click duplicado");
+            return;
+        }
+        lastLookupTime.current = now;
+
         let { sentence, charIndex, rectTop, rectLeft, rectBottom } = data;
         if (!sentence) return;
 
-        // 🚀 USAR COORDENADAS GEOMÉTRICAS (No del dedo)
-        // Usamos el 'rectTop' y 'rectLeft' del caracter exacto detectado en el DOM.
         const x = rectLeft;
         const y = rectTop;
 
         const popupWidth = SCREEN_WIDTH * 0.88;
         const popupHeight = 220; 
 
-        // Posicionamiento horizontal (Centrado sobre la palabra)
         let leftPos = x - popupWidth / 2;
         if (leftPos < 15) leftPos = 15;
         if (leftPos + popupWidth > SCREEN_WIDTH - 15) leftPos = SCREEN_WIDTH - popupWidth - 15;
 
-        // Posicionamiento vertical (Detectar colisión abajo)
-        // Por defecto, lo ponemos justo debajo de la palabra (usando rectBottom)
         let topPos = (rectBottom || y) + 10; 
         
-        // Si no cabe abajo, lo tiramos ARRIBA de la palabra
         if (topPos + popupHeight > SCREEN_HEIGHT - 60) {
           topPos = y - popupHeight - 15; 
         }
 
-        // Limpiar resultados anteriores y mostrar popup en modo carga
         setResults([]); 
         setLoading(true);
         setPopup({
@@ -85,7 +87,6 @@ export const useReaderLookup = () => {
           left: leftPos
         });
 
-        // 🚀 PASO 2: Hacer el lookup en segundo plano
         try {
           const lookupData = await lookupAtCharacterIndex(sentence, charIndex);
           setResults(lookupData);

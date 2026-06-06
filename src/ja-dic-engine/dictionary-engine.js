@@ -171,7 +171,7 @@ export class JitendexEngine {
         }
 
         // =====================================================
-        // 4. Ranking original
+        // 4. Ranking original (Optimizado para longitud)
         // =====================================================
 
         const typePriority = {
@@ -183,20 +183,22 @@ export class JitendexEngine {
         };
 
         matches.sort((a, b) => {
-            const pA =
-                typePriority[a.cand.type] || 0;
+            // 1. Prioridad por longitud del término (más largo primero)
+            const lenA = a.entry[0].length;
+            const lenB = b.entry[0].length;
+            if (lenA !== lenB) {
+                return lenB - lenA;
+            }
 
-            const pB =
-                typePriority[b.cand.type] || 0;
-
+            // 2. Prioridad por tipo de coincidencia
+            const pA = typePriority[a.cand.type] || 0;
+            const pB = typePriority[b.cand.type] || 0;
             if (pA !== pB) {
                 return pB - pA;
             }
 
-            return (
-                (b.entry[4] || 0) -
-                (a.entry[4] || 0)
-            );
+            // 3. Prioridad por popularidad (score)
+            return (b.entry[4] || 0) - (a.entry[4] || 0);
         });
 
         // =====================================================
