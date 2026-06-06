@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useDatabaseSeeding } from '../hooks/useDatabaseSeeding';
 import { useDictionaryImport } from '../hooks/useDictionaryImport';
+import { useVocabulary } from '../hooks/useVocabulary';
 import { useTheme } from '../ThemeContext';
 import { Themes, ThemeName } from '../theme';
 
 export const SettingsScreen: React.FC = () => {
   const { theme, themeName, setTheme } = useTheme();
+  const { dailyGoal, setDailyGoal } = useVocabulary();
   const { 
     loadingSeeding, 
     handleVerifyDatabase 
@@ -25,6 +27,30 @@ export const SettingsScreen: React.FC = () => {
   return (
     <ScrollView style={dynamicStyles.container}>
       <Text style={dynamicStyles.title}>Configuración</Text>
+
+      <View style={dynamicStyles.section}>
+        <Text style={dynamicStyles.sectionTitle}>Meta Diaria</Text>
+        <Text style={dynamicStyles.sectionDescription}>
+          Establece cuántas palabras nuevas quieres aprender cada día.
+        </Text>
+        <View style={dynamicStyles.goalInputContainer}>
+          {[5, 10, 15, 20, 30].map((val) => (
+            <TouchableOpacity
+              key={val}
+              style={[
+                dynamicStyles.goalPreset,
+                dailyGoal === val && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+              ]}
+              onPress={() => setDailyGoal(val)}
+            >
+              <Text style={[
+                dynamicStyles.goalPresetText,
+                dailyGoal === val && { color: theme.colors.white }
+              ]}>{val}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       <View style={dynamicStyles.section}>
         <Text style={dynamicStyles.sectionTitle}>Tema de la Aplicación</Text>
@@ -176,5 +202,22 @@ const styles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.colors.textMuted,
     marginBottom: 5,
+  },
+  goalInputContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  goalPreset: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+  },
+  goalPresetText: {
+    fontWeight: 'bold',
+    color: theme.colors.text,
   }
 });

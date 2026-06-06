@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from 'react-native';
 
 import { HomeScreen } from '../screens/HomeScreen';
@@ -7,17 +8,58 @@ import { ReaderScreen } from '../screens/ReaderScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
+import { MoreScreen } from '../screens/MoreScreen';
 import { useTheme } from '../ThemeContext';
 
 export type RootTabParamList = {
   Home: undefined;
   Reader: { url: string } | undefined;
-  Search: undefined;
   Vocabulary: undefined;
+  MoreStack: undefined;
+};
+
+export type MoreStackParamList = {
+  More: undefined;
+  Search: undefined;
   Settings: undefined;
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createNativeStackNavigator<MoreStackParamList>();
+
+const MoreNavigator = () => {
+  const { theme } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+        },
+        headerTitleStyle: {
+          color: theme.colors.header,
+          fontFamily: theme.fonts.serif,
+        },
+        headerTintColor: theme.colors.header,
+      }}
+    >
+      <Stack.Screen 
+        name="More" 
+        component={MoreScreen} 
+        options={{ title: 'Más' }} 
+      />
+      <Stack.Screen 
+        name="Search" 
+        component={SearchScreen} 
+        options={{ title: 'Buscar' }} 
+      />
+      <Stack.Screen 
+        name="Settings" 
+        component={SettingsScreen} 
+        options={{ title: 'Ajustes' }} 
+      />
+    </Stack.Navigator>
+  );
+};
 
 const TabIcon = ({ label, focused }: { label: string; focused: boolean }) => {
   const { theme } = useTheme();
@@ -44,9 +86,8 @@ export const AppNavigator = () => {
           let icon = '';
           if (route.name === 'Home') icon = '🏠';
           else if (route.name === 'Reader') icon = '📖';
-          else if (route.name === 'Search') icon = '🔍';
           else if (route.name === 'Vocabulary') icon = '🔖';
-          else if (route.name === 'Settings') icon = '⚙️';
+          else if (route.name === 'MoreStack') icon = '⋯';
           return <TabIcon label={icon} focused={focused} />;
         },
         tabBarActiveTintColor: theme.colors.primary,
@@ -85,19 +126,17 @@ export const AppNavigator = () => {
         initialParams={{ url: 'https://www.google.com' }}
       />
       <Tab.Screen 
-        name="Search" 
-        component={SearchScreen} 
-        options={{ title: 'Buscar' }}
-      />
-      <Tab.Screen 
         name="Vocabulary" 
         component={VocabularyScreen} 
         options={{ title: 'Vocabulario' }}
       />
       <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen} 
-        options={{ title: 'Ajustes' }}
+        name="MoreStack" 
+        component={MoreNavigator} 
+        options={{ 
+          title: 'Más',
+          headerShown: false // The stack has its own header
+        }}
       />
     </Tab.Navigator>
   );

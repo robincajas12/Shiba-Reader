@@ -19,7 +19,6 @@ export const useBrowser = () => {
       if (allBookmarks.length === 0) {
         const defaults = [
           { title: 'Google', url: 'https://www.google.com/' },
-          { title: 'Aozora Bunko', url: 'https://www.aozora.gr.jp/' },
         ];
         for (const b of defaults) {
           await bookmarkRepo.insert({ ...b, created_at: Date.now() } as Bookmark);

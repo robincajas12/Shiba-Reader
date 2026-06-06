@@ -64,7 +64,7 @@ const VocabularyItem: React.FC<{ item: VocabularyEntry; onRemove: (id: number) =
 
 export const VocabularyScreen: React.FC = () => {
     const { theme } = useTheme();
-    const { vocabulary, removeVocabulary, refreshVocabulary } = useVocabulary();
+    const { vocabulary, removeVocabulary, refreshVocabulary, todayCount, dailyGoal } = useVocabulary();
 
     useFocusEffect(
         useCallback(() => {
@@ -78,8 +78,29 @@ export const VocabularyScreen: React.FC = () => {
 
     const dynamicStyles = styles(theme);
 
+    const progress = Math.min(todayCount / dailyGoal, 1);
+    const isGoalReached = todayCount >= dailyGoal;
+
     return (
         <View style={dynamicStyles.container}>
+            <View style={dynamicStyles.goalContainer}>
+                <View style={dynamicStyles.goalHeader}>
+                    <Text style={dynamicStyles.goalTitle}>Meta Diaria</Text>
+                    <Text style={dynamicStyles.goalCount}>
+                        {todayCount} / {dailyGoal} <Text style={{ fontSize: 12 }}>palabras</Text>
+                    </Text>
+                </View>
+                <View style={dynamicStyles.progressBarBg}>
+                    <View style={[
+                        dynamicStyles.progressBarFill, 
+                        { width: `${progress * 100}%`, backgroundColor: isGoalReached ? theme.colors.success : theme.colors.primary }
+                    ]} />
+                </View>
+                {isGoalReached && (
+                    <Text style={dynamicStyles.goalReachedText}>🎉 ¡Meta alcanzada! ¡Buen trabajo!</Text>
+                )}
+            </View>
+
             <FlatList
                 data={vocabulary}
                 keyExtractor={(item) => item.id.toString()}
@@ -208,6 +229,45 @@ const styles = (theme: any) => StyleSheet.create({
     emptySubtext: {
         fontSize: 14,
         color: theme.colors.textMuted,
+        textAlign: 'center',
+    } as TextStyle,
+    goalContainer: {
+        backgroundColor: theme.colors.surface,
+        padding: theme.spacing.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
+    } as ViewStyle,
+    goalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: theme.spacing.sm,
+    } as ViewStyle,
+    goalTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: theme.colors.header,
+    } as TextStyle,
+    goalCount: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: theme.colors.primary,
+    } as TextStyle,
+    progressBarBg: {
+        height: 10,
+        backgroundColor: theme.colors.border,
+        borderRadius: 5,
+        overflow: 'hidden',
+    } as ViewStyle,
+    progressBarFill: {
+        height: '100%',
+        borderRadius: 5,
+    } as ViewStyle,
+    goalReachedText: {
+        marginTop: theme.spacing.sm,
+        fontSize: 12,
+        color: theme.colors.success,
+        fontWeight: 'bold',
         textAlign: 'center',
     } as TextStyle,
 });

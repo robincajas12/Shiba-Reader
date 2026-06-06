@@ -42,7 +42,7 @@ export const HomeScreen: React.FC = () => {
       <View style={dynamicStyles.searchSection}>
         <TextInput
           style={dynamicStyles.input}
-          placeholder="Introduce una URL (ej. nhk.or.jp)"
+          placeholder="Introduce una URL"
           placeholderTextColor={theme.colors.textMuted}
           value={url}
           onChangeText={setUrl}
@@ -103,7 +103,6 @@ export const HomeScreen: React.FC = () => {
               style={dynamicStyles.historyItem}
               onPress={() => handleOpenUrl(item.url)}
             >
-              <Text style={dynamicStyles.historyEmoji}>🕒</Text>
               <Text style={dynamicStyles.historyUrl} numberOfLines={1}>{item.url}</Text>
             </TouchableOpacity>
           ))
@@ -250,10 +249,6 @@ const styles = (theme: any) => StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.card,
-  },
-  historyEmoji: {
-    fontSize: 16,
-    marginRight: 12,
   },
   historyUrl: {
     fontSize: 14,

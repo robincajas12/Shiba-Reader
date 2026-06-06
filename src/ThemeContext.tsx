@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Themes, ThemeType, ThemeName, DefaultTheme } from './theme';
+import { dbEngine } from './db/engine';
 
 interface ThemeContextType {
   theme: ThemeType;
@@ -11,11 +12,31 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [themeName, setThemeName] = useState<ThemeName>('blueNight');
+  const settingsRepo = dbEngine.getRepository('SettingsRepository');
+
+  useEffect(() => {
+    const loadTheme = async () => {
+      try {
+        const savedTheme = await settingsRepo.get('theme_name', 'blueNight');
+        if (savedTheme && Themes[savedTheme as ThemeName]) {
+          setThemeName(savedTheme as ThemeName);
+        }
+      } catch (e) {
+        console.error('Error loading theme:', e);
+      }
+    };
+    loadTheme();
+  }, [settingsRepo]);
 
   const theme = Themes[themeName] || DefaultTheme;
 
-  const setTheme = (name: ThemeName) => {
+  const setTheme = async (name: ThemeName) => {
     setThemeName(name);
+    try {
+      await settingsRepo.set('theme_name', name);
+    } catch (e) {
+      console.error('Error saving theme:', e);
+    }
   };
 
   return (

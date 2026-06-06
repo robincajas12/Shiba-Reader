@@ -24,4 +24,12 @@ export class VocabularyRepository extends Repository<VocabularyEntry> {
         const rows = result.rows as VocabularyEntry[];
         return rows.length > 0 ? rows[0] : null;
     }
+
+    async getTodayCount(): Promise<number> {
+        const startOfToday = new Date().setHours(0, 0, 0, 0);
+        const query = `SELECT COUNT(*) as count FROM ${this.table.name} WHERE created_at >= ?`;
+        const result = await db.execute(query, [startOfToday]);
+        const rows = result.rows as any[];
+        return rows[0]?.count || 0;
+    }
 }
