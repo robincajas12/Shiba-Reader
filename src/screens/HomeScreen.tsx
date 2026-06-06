@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useBrowser } from '../hooks/useBrowser';
-import { Theme } from '../theme';
+import { useTheme } from '../ThemeContext';
 
 type TabParamList = {
   Home: undefined;
@@ -14,6 +14,7 @@ type TabParamList = {
 
 export const HomeScreen: React.FC = () => {
   const [url, setUrl] = useState('');
+  const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const { history, bookmarks, clearHistory, removeBookmark, refreshBrowserData } = useBrowser();
 
@@ -29,18 +30,20 @@ export const HomeScreen: React.FC = () => {
     navigation.navigate('Reader', { url: formattedUrl });
   };
 
+  const dynamicStyles = styles(theme);
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.hero}>
-        <Text style={styles.heroTitle}>Ringo Reader</Text>
-        <Text style={styles.heroSubtitle}>Tu puerta a la lectura en Japonés</Text>
+    <ScrollView style={dynamicStyles.container}>
+      <View style={dynamicStyles.hero}>
+        <Text style={dynamicStyles.heroTitle}>Ringo Reader</Text>
+        <Text style={dynamicStyles.heroSubtitle}>Tu puerta a la lectura en Japonés</Text>
       </View>
 
-      <View style={styles.searchSection}>
+      <View style={dynamicStyles.searchSection}>
         <TextInput
-          style={styles.input}
+          style={dynamicStyles.input}
           placeholder="Introduce una URL (ej. nhk.or.jp)"
-          placeholderTextColor={Theme.colors.textMuted}
+          placeholderTextColor={theme.colors.textMuted}
           value={url}
           onChangeText={setUrl}
           autoCapitalize="none"
@@ -48,47 +51,47 @@ export const HomeScreen: React.FC = () => {
           onSubmitEditing={() => handleOpenUrl(url)}
         />
         <TouchableOpacity 
-          style={styles.goButton}
+          style={dynamicStyles.goButton}
           onPress={() => handleOpenUrl(url)}
         >
-          <Text style={styles.goButtonText}>Ir</Text>
+          <Text style={dynamicStyles.goButtonText}>Ir</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Favoritos</Text>
+      <View style={dynamicStyles.section}>
+        <View style={dynamicStyles.sectionHeader}>
+          <Text style={dynamicStyles.sectionTitle}>Favoritos</Text>
           <TouchableOpacity onPress={refreshBrowserData}>
-            <Text style={styles.refreshEmoji}>🔄</Text>
+            <Text style={dynamicStyles.refreshEmoji}>🔄</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.bookmarksGrid}>
+        <View style={dynamicStyles.bookmarksGrid}>
           {bookmarks.map((item) => (
-            <View key={item.id} style={styles.bookmarkWrapper}>
+            <View key={item.id} style={dynamicStyles.bookmarkWrapper}>
               <TouchableOpacity 
-                style={styles.bookmarkCard}
+                style={dynamicStyles.bookmarkCard}
                 onPress={() => handleOpenUrl(item.url)}
               >
-                <Text style={styles.bookmarkEmoji}>🌐</Text>
-                <Text style={styles.bookmarkTitle} numberOfLines={2}>{item.title}</Text>
+                <Text style={dynamicStyles.bookmarkEmoji}>🌐</Text>
+                <Text style={dynamicStyles.bookmarkTitle} numberOfLines={2}>{item.title}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={styles.removeBookmarkBtn}
+                style={dynamicStyles.removeBookmarkBtn}
                 onPress={() => removeBookmark(item.id)}
               >
-                <Text style={styles.removeBtnText}>✕</Text>
+                <Text style={dynamicStyles.removeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>
           ))}
         </View>
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recientes</Text>
+      <View style={dynamicStyles.section}>
+        <View style={dynamicStyles.sectionHeader}>
+          <Text style={dynamicStyles.sectionTitle}>Recientes</Text>
           {history.length > 0 && (
             <TouchableOpacity onPress={clearHistory}>
-              <Text style={styles.clearAllText}>Borrar todo</Text>
+              <Text style={dynamicStyles.clearAllText}>Borrar todo</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -97,123 +100,123 @@ export const HomeScreen: React.FC = () => {
           history.map((item) => (
             <TouchableOpacity 
               key={item.id} 
-              style={styles.historyItem}
+              style={dynamicStyles.historyItem}
               onPress={() => handleOpenUrl(item.url)}
             >
-              <Text style={styles.historyEmoji}>🕒</Text>
-              <Text style={styles.historyUrl} numberOfLines={1}>{item.url}</Text>
+              <Text style={dynamicStyles.historyEmoji}>🕒</Text>
+              <Text style={dynamicStyles.historyUrl} numberOfLines={1}>{item.url}</Text>
             </TouchableOpacity>
           ))
         ) : (
-          <Text style={styles.emptyText}>No hay historial reciente</Text>
+          <Text style={dynamicStyles.emptyText}>No hay historial reciente</Text>
         )}
       </View>
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
   },
   hero: {
-    padding: Theme.spacing.xl,
-    backgroundColor: Theme.colors.surface,
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.surface,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.border,
+    borderBottomColor: theme.colors.border,
   },
   heroTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: Theme.colors.header,
-    fontFamily: Theme.fonts.serif,
+    color: theme.colors.header,
+    fontFamily: theme.fonts.serif,
   },
   heroSubtitle: {
     fontSize: 14,
-    color: Theme.colors.textMuted,
-    marginTop: Theme.spacing.xs,
+    color: theme.colors.textMuted,
+    marginTop: theme.spacing.xs,
   },
   searchSection: {
-    padding: Theme.spacing.lg,
+    padding: theme.spacing.lg,
     flexDirection: 'row',
   },
   input: {
     flex: 1,
     height: 50,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
-    borderRadius: Theme.radius.md,
-    paddingHorizontal: Theme.spacing.md,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.md,
     fontSize: 16,
-    backgroundColor: Theme.colors.surface,
-    color: Theme.colors.text,
-    fontFamily: Theme.fonts.serif,
+    backgroundColor: theme.colors.surface,
+    color: theme.colors.text,
+    fontFamily: theme.fonts.serif,
   },
   goButton: {
     width: 60,
-    marginLeft: Theme.spacing.sm,
-    backgroundColor: Theme.colors.primary,
-    borderRadius: Theme.radius.md,
+    marginLeft: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   goButtonText: {
-    color: Theme.colors.background,
+    color: theme.colors.background,
     fontWeight: 'bold',
     fontSize: 16,
   },
   section: {
-    padding: Theme.spacing.lg,
+    padding: theme.spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Theme.colors.header,
-    fontFamily: Theme.fonts.serif,
+    color: theme.colors.header,
+    fontFamily: theme.fonts.serif,
   },
   refreshEmoji: {
     fontSize: 16,
   },
   clearAllText: {
-    color: Theme.colors.accent,
+    color: theme.colors.accent,
     fontSize: 13,
   },
   bookmarksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    marginTop: Theme.spacing.xs,
+    marginTop: theme.spacing.xs,
   },
   bookmarkWrapper: {
     width: '30%',
     marginRight: '3%',
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
     position: 'relative',
   },
   bookmarkCard: {
-    backgroundColor: Theme.colors.card,
-    padding: Theme.spacing.sm,
-    borderRadius: Theme.radius.lg,
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.sm,
+    borderRadius: theme.radius.lg,
     alignItems: 'center',
     height: 90,
     justifyContent: 'center',
     width: '100%',
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
   },
   removeBookmarkBtn: {
     position: 'absolute',
     top: -5,
     right: -5,
-    backgroundColor: Theme.colors.error,
+    backgroundColor: theme.colors.error,
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -222,31 +225,31 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   removeBtnText: {
-    color: Theme.colors.white,
+    color: theme.colors.white,
     fontSize: 10,
     fontWeight: 'bold',
   },
   bookmarkEmoji: {
     fontSize: 24,
-    marginBottom: Theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
   },
   bookmarkTitle: {
     fontSize: 11,
     textAlign: 'center',
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontWeight: '500',
   },
   emptyText: {
-    color: Theme.colors.border,
+    color: theme.colors.border,
     textAlign: 'center',
-    marginTop: Theme.spacing.sm,
+    marginTop: theme.spacing.sm,
   },
   historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.card,
+    borderBottomColor: theme.colors.card,
   },
   historyEmoji: {
     fontSize: 16,
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
   },
   historyUrl: {
     fontSize: 14,
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     flex: 1,
   }
 });

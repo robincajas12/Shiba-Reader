@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { ResultsList } from './ResultsList';
 import { LookupResult, StructuredContentNode } from '../types';
-import { Theme } from '../theme';
+import { ThemeName, Themes } from '../theme';
 import { useVocabulary } from '../hooks/useVocabulary';
+import { useTheme } from '../ThemeContext';
 
 interface DictionaryPopupProps {
   visible: boolean;
@@ -113,6 +114,7 @@ export const DictionaryPopup: React.FC<DictionaryPopupProps> = React.memo(({
   onClose,
   sentence = '',
 }) => {
+  const { theme } = useTheme();
   const { addVocabulary } = useVocabulary();
   const [selectedSenseIds, setSelectedSenseIds] = useState<Set<string>>(new Set());
 
@@ -168,30 +170,32 @@ export const DictionaryPopup: React.FC<DictionaryPopupProps> = React.memo(({
     onClose();
   }, [selectedSenseIds, enrichedResults, sentence, addVocabulary, onClose]);
 
+  const dynamicStyles = styles(theme);
+
   if (!visible) return null;
 
   return (
-    <View style={[styles.popupCard, { top, left }]}>
-      <View style={styles.popupHeader}>
+    <View style={[dynamicStyles.popupCard, { top, left }]}>
+      <View style={dynamicStyles.popupHeader}>
         {selectedSenseIds.size > 0 && (
           <TouchableOpacity 
-            style={styles.saveSelectedButton} 
+            style={dynamicStyles.saveSelectedButton} 
             onPress={handleSaveSelected}
           >
-            <Text style={styles.saveSelectedText}>Guardar ({selectedSenseIds.size})</Text>
+            <Text style={dynamicStyles.saveSelectedText}>Guardar ({selectedSenseIds.size})</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity 
-          style={styles.closeButton} 
+          style={dynamicStyles.closeButton} 
           onPress={onClose}
         >
-          <Text style={styles.closeButtonText}>✕</Text>
+          <Text style={dynamicStyles.closeButtonText}>✕</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView 
         style={{ maxHeight: 220 }} 
-        contentContainerStyle={{ paddingBottom: Theme.spacing.md }}
+        contentContainerStyle={{ paddingBottom: theme.spacing.md }}
         showsVerticalScrollIndicator={true}
         onTouchStart={(e) => e.stopPropagation()} 
       >
@@ -207,44 +211,44 @@ export const DictionaryPopup: React.FC<DictionaryPopupProps> = React.memo(({
   );
 });
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   popupCard: {
     position: 'absolute',
     width: '88%',
-    backgroundColor: Theme.colors.surface,
-    borderRadius: Theme.radius.lg,
-    paddingHorizontal: Theme.spacing.lg,
-    paddingBottom: Theme.spacing.lg,
-    paddingTop: Theme.spacing.sm,
-    shadowColor: Theme.colors.black,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+    paddingTop: theme.spacing.sm,
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 10,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: theme.colors.border,
     zIndex: 9999, 
   },
   popupHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: Theme.spacing.xs
+    marginBottom: theme.spacing.xs
   },
   saveSelectedButton: {
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: Theme.radius.sm,
+    borderRadius: theme.radius.sm,
     marginRight: 10,
   },
   saveSelectedText: {
-    color: Theme.colors.background,
+    color: theme.colors.background,
     fontSize: 12,
     fontWeight: 'bold',
   },
   closeButton: {
-    backgroundColor: Theme.colors.border,
+    backgroundColor: theme.colors.border,
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -253,7 +257,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 12,
-    color: Theme.colors.text,
+    color: theme.colors.text,
     fontWeight: 'bold'
   }
 });

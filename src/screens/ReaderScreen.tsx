@@ -9,7 +9,7 @@ import { DictionaryPopup } from '../components/DictionaryPopup';
 // Hooks
 import { useReaderLookup } from '../hooks/useReaderLookup';
 import { useBrowser } from '../hooks/useBrowser';
-import { Theme } from '../theme';
+import { useTheme } from '../ThemeContext';
 
 type RootStackParamList = {
   Reader: { url: string };
@@ -18,6 +18,7 @@ type RootStackParamList = {
 type ReaderScreenRouteProp = RouteProp<RootStackParamList, 'Reader'>;
 
 export const ReaderScreen: React.FC = () => {
+  const { theme } = useTheme();
   const route = useRoute<ReaderScreenRouteProp>();
   const navigation = useNavigation();
   const { addToHistory, addBookmark, removeBookmark, bookmarks } = useBrowser();
@@ -71,57 +72,59 @@ export const ReaderScreen: React.FC = () => {
     closePopup 
   } = useReaderLookup();
 
+  const dynamicStyles = styles(theme);
+
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {/* Mini Browser Header */}
-      <View style={styles.miniHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>✕</Text>
+      <View style={dynamicStyles.miniHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backButton}>
+          <Text style={dynamicStyles.backButtonText}>✕</Text>
         </TouchableOpacity>
 
-        <View style={styles.navControls}>
+        <View style={dynamicStyles.navControls}>
           <TouchableOpacity 
             onPress={() => readerRef.current?.goBack()} 
             disabled={!canGoBack}
-            style={[styles.navButton, !canGoBack && styles.disabledButton]}
+            style={[dynamicStyles.navButton, !canGoBack && dynamicStyles.disabledButton]}
           >
-            <Text style={styles.navButtonText}>←</Text>
+            <Text style={dynamicStyles.navButtonText}>←</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={() => readerRef.current?.goForward()} 
             disabled={!canGoForward}
-            style={[styles.navButton, !canGoForward && styles.disabledButton]}
+            style={[dynamicStyles.navButton, !canGoForward && dynamicStyles.disabledButton]}
           >
-            <Text style={styles.navButtonText}>→</Text>
+            <Text style={dynamicStyles.navButtonText}>→</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.urlDisplay}>
-          <Text style={styles.urlText} numberOfLines={1}>{currentUrl}</Text>
+        <View style={dynamicStyles.urlDisplay}>
+          <Text style={dynamicStyles.urlText} numberOfLines={1}>{currentUrl}</Text>
         </View>
         
         <TouchableOpacity 
           onPress={toggleScanner} 
-          style={styles.scannerToggle}
+          style={dynamicStyles.scannerToggle}
         >
-          <Text style={[styles.scannerToggleText, !isScannerEnabled && styles.scannerDisabled]}>
+          <Text style={[dynamicStyles.scannerToggleText, !isScannerEnabled && dynamicStyles.scannerDisabled]}>
         {isScannerEnabled ? '📖' : '🔒'}   
        </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={toggleBookmark} style={styles.favButton}>
-          <Text style={[styles.favButtonText, isFav && styles.favActive]}>
+        <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.favButton}>
+          <Text style={[dynamicStyles.favButtonText, isFav && dynamicStyles.favActive]}>
             {isFav ? '★' : '☆'}
           </Text>
         </TouchableOpacity>
 
         {/* Progress Bar */}
         {isLoading && (
-          <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
+          <View style={[dynamicStyles.progressBar, { width: `${progress * 100}%` }]} />
         )}
       </View>
 
-      <View style={styles.mainContent}>
+      <View style={dynamicStyles.mainContent}>
         <Reader 
           ref={readerRef}
           uri={initialUrl}
@@ -132,9 +135,9 @@ export const ReaderScreen: React.FC = () => {
         />
 
         {isLoading && progress < 0.9 && (
-          <View style={styles.loadingOverlay} pointerEvents="none">
-            <ActivityIndicator size="large" color={Theme.colors.primary} />
-            <Text style={styles.loadingText}>Cargando página...</Text>
+          <View style={dynamicStyles.loadingOverlay} pointerEvents="none">
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={dynamicStyles.loadingText}>Cargando página...</Text>
           </View>
         )}
 
@@ -153,59 +156,59 @@ export const ReaderScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Theme.colors.background },
+const styles = (theme: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.background },
   miniHeader: {
     height: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.border,
-    backgroundColor: Theme.colors.surface,
+    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
   },
   backButton: {
-    marginRight: Theme.spacing.xs,
+    marginRight: theme.spacing.xs,
   },
   backButtonText: {
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     fontSize: 18,
   },
   navControls: {
     flexDirection: 'row',
-    marginRight: Theme.spacing.sm,
+    marginRight: theme.spacing.sm,
   },
   navButton: {
     padding: 8,
   },
   navButtonText: {
     fontSize: 20,
-    color: Theme.colors.accent,
+    color: theme.colors.accent,
   },
   disabledButton: {
     opacity: 0.3,
   },
   urlDisplay: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: Theme.radius.md,
-    marginRight: Theme.spacing.sm,
+    borderRadius: theme.radius.md,
+    marginRight: theme.spacing.sm,
   },
   urlText: {
     fontSize: 12,
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
   },
   favButton: {
     padding: 5,
   },
   favButtonText: {
     fontSize: 22,
-    color: Theme.colors.border,
+    color: theme.colors.border,
   },
   favActive: {
-    color: Theme.colors.star,
+    color: theme.colors.star,
   },
   scannerToggle: {
     padding: 5,
@@ -226,11 +229,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     height: 3,
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: theme.colors.primary,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Theme.colors.background,
+    backgroundColor: theme.colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
@@ -238,7 +241,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 15,
     fontSize: 14,
-    color: Theme.colors.textMuted,
+    color: theme.colors.textMuted,
     fontWeight: '500',
   },
 });

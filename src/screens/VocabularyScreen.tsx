@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ViewStyle, TextStyl
 import { useFocusEffect } from '@react-navigation/native';
 import { useVocabulary } from '../hooks/useVocabulary';
 import { VocabularyEntry } from '../db/schemas/Vocabulary';
-import { Theme } from '../theme';
+import { useTheme } from '../ThemeContext';
 import { StructuredContent } from '../components/StructuredContent';
 
-// Sub-component for each vocabulary card to handle its own toggle state safely
+// Sub-component for each vocabulary card
 const VocabularyItem: React.FC<{ item: VocabularyEntry; onRemove: (id: number) => void }> = React.memo(({ item, onRemove }) => {
+    const { theme } = useTheme();
     const [showDefinition, setShowDefinition] = useState(false);
     
     let parsedContent = null;
@@ -17,49 +18,52 @@ const VocabularyItem: React.FC<{ item: VocabularyEntry; onRemove: (id: number) =
         console.error("Error parsing definition:", e);
     }
 
+    const dynamicStyles = styles(theme);
+
     return (
-        <View style={styles.card}>
-            <View style={styles.cardHeader}>
-                <View style={styles.termContainer}>
-                    <Text style={styles.term}>{item.term}</Text>
-                    {item.reading !== item.term && <Text style={styles.reading}>{item.reading}</Text>}
+        <View style={dynamicStyles.card}>
+            <View style={dynamicStyles.cardHeader}>
+                <View style={dynamicStyles.termContainer}>
+                    <Text style={dynamicStyles.term}>{item.term}</Text>
+                    {item.reading !== item.term && <Text style={dynamicStyles.reading}>{item.reading}</Text>}
                 </View>
                 <TouchableOpacity 
                     onPress={() => onRemove(item.id)}
-                    style={styles.deleteButton}
+                    style={dynamicStyles.deleteButton}
                 >
-                    <Text style={styles.deleteText}>✕</Text>
+                    <Text style={dynamicStyles.deleteText}>✕</Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.sentenceContainer}>
-                <Text style={styles.sentenceLabel}>Contexto:</Text>
-                <Text style={styles.sentenceText}>{item.sentence}</Text>
+            <View style={dynamicStyles.sentenceContainer}>
+                <Text style={dynamicStyles.sentenceLabel}>Contexto:</Text>
+                <Text style={dynamicStyles.sentenceText}>{item.sentence}</Text>
             </View>
 
             <TouchableOpacity 
-                style={styles.toggleButton} 
+                style={dynamicStyles.toggleButton} 
                 onPress={() => setShowDefinition(!showDefinition)}
             >
-                <Text style={styles.toggleButtonText}>
+                <Text style={dynamicStyles.toggleButtonText}>
                     {showDefinition ? 'ocultar definición ▲' : 'ver definición ▼'}
                 </Text>
             </TouchableOpacity>
 
             {showDefinition && parsedContent && (
-                <View style={styles.definitionContainer}>
+                <View style={dynamicStyles.definitionContainer}>
                     <StructuredContent content={parsedContent} />
                 </View>
             )}
             
-            <View style={styles.footer}>
-                <Text style={styles.date}>{new Date(item.created_at).toLocaleDateString()}</Text>
+            <View style={dynamicStyles.footer}>
+                <Text style={dynamicStyles.date}>{new Date(item.created_at).toLocaleDateString()}</Text>
             </View>
         </View>
     );
 });
 
 export const VocabularyScreen: React.FC = () => {
+    const { theme } = useTheme();
     const { vocabulary, removeVocabulary, refreshVocabulary } = useVocabulary();
 
     useFocusEffect(
@@ -72,18 +76,20 @@ export const VocabularyScreen: React.FC = () => {
         <VocabularyItem item={item} onRemove={removeVocabulary} />
     );
 
+    const dynamicStyles = styles(theme);
+
     return (
-        <View style={styles.container}>
+        <View style={dynamicStyles.container}>
             <FlatList
                 data={vocabulary}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={dynamicStyles.listContent}
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyEmoji}>📚</Text>
-                        <Text style={styles.emptyText}>Aún no has guardado ninguna palabra.</Text>
-                        <Text style={styles.emptySubtext}>Usa el botón "+" en el lector para guardar vocabulario con su contexto.</Text>
+                    <View style={dynamicStyles.emptyContainer}>
+                        <Text style={dynamicStyles.emptyEmoji}>📚</Text>
+                        <Text style={dynamicStyles.emptyText}>Aún no has guardado ninguna palabra.</Text>
+                        <Text style={dynamicStyles.emptySubtext}>Usa el botón "+" en el lector para guardar vocabulario con su contexto.</Text>
                     </View>
                 }
             />
@@ -91,23 +97,23 @@ export const VocabularyScreen: React.FC = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Theme.colors.background,
+        backgroundColor: theme.colors.background,
     },
     listContent: {
-        padding: Theme.spacing.md,
+        padding: theme.spacing.md,
     },
     card: {
-        backgroundColor: Theme.colors.surface,
-        borderRadius: Theme.radius.lg,
-        padding: Theme.spacing.lg,
-        marginBottom: Theme.spacing.md,
+        backgroundColor: theme.colors.surface,
+        borderRadius: theme.radius.lg,
+        padding: theme.spacing.lg,
+        marginBottom: theme.spacing.md,
         borderWidth: 1,
-        borderColor: Theme.colors.border,
+        borderColor: theme.colors.border,
         elevation: 2,
-        shadowColor: Theme.colors.black,
+        shadowColor: theme.colors.black,
         shadowOpacity: 0.1,
         shadowRadius: 4,
     } as ViewStyle,
@@ -115,7 +121,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: Theme.spacing.sm,
+        marginBottom: theme.spacing.sm,
     } as ViewStyle,
     termContainer: {
         flex: 1,
@@ -123,65 +129,65 @@ const styles = StyleSheet.create({
     term: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: Theme.colors.header,
+        color: theme.colors.header,
     } as TextStyle,
     reading: {
         fontSize: 14,
-        color: Theme.colors.textMuted,
+        color: theme.colors.textMuted,
     } as TextStyle,
     toggleButton: {
-        marginTop: Theme.spacing.md,
+        marginTop: theme.spacing.md,
         paddingVertical: 8,
         alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: Theme.colors.border,
+        borderTopColor: theme.colors.border,
     } as ViewStyle,
     toggleButtonText: {
         fontSize: 12,
-        color: Theme.colors.accent,
+        color: theme.colors.accent,
         fontWeight: 'bold',
         textTransform: 'uppercase',
     } as TextStyle,
     definitionContainer: {
-        marginTop: Theme.spacing.sm,
-        paddingBottom: Theme.spacing.sm,
+        marginTop: theme.spacing.sm,
+        paddingBottom: theme.spacing.sm,
     } as ViewStyle,
     deleteButton: {
         padding: 5,
     } as ViewStyle,
     deleteText: {
         fontSize: 18,
-        color: Theme.colors.error,
+        color: theme.colors.error,
         fontWeight: 'bold',
     } as TextStyle,
     sentenceContainer: {
-        marginTop: Theme.spacing.md,
-        padding: Theme.spacing.md,
-        backgroundColor: Theme.colors.card,
-        borderRadius: Theme.radius.md,
+        marginTop: theme.spacing.md,
+        padding: theme.spacing.md,
+        backgroundColor: theme.colors.card,
+        borderRadius: theme.radius.md,
         borderLeftWidth: 4,
-        borderLeftColor: Theme.colors.primary,
+        borderLeftColor: theme.colors.primary,
     } as ViewStyle,
     sentenceLabel: {
         fontSize: 10,
         fontWeight: 'bold',
-        color: Theme.colors.textMuted,
+        color: theme.colors.textMuted,
         marginBottom: 4,
         textTransform: 'uppercase',
     } as TextStyle,
     sentenceText: {
         fontSize: 14,
-        color: Theme.colors.text,
+        color: theme.colors.text,
         fontStyle: 'italic',
         lineHeight: 20,
     } as TextStyle,
     footer: {
-        marginTop: Theme.spacing.md,
+        marginTop: theme.spacing.md,
         alignItems: 'flex-end',
     } as ViewStyle,
     date: {
         fontSize: 10,
-        color: Theme.colors.textMuted,
+        color: theme.colors.textMuted,
     } as TextStyle,
     emptyContainer: {
         alignItems: 'center',
@@ -195,13 +201,13 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: Theme.colors.text,
+        color: theme.colors.text,
         textAlign: 'center',
         marginBottom: 10,
     } as TextStyle,
     emptySubtext: {
         fontSize: 14,
-        color: Theme.colors.textMuted,
+        color: theme.colors.textMuted,
         textAlign: 'center',
     } as TextStyle,
 });

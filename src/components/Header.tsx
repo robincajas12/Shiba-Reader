@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
-import { Theme } from '../theme';
+import { useTheme } from '../ThemeContext';
 
 interface HeaderProps {
   loadingSeeding: boolean;
@@ -12,38 +11,40 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ loadingSeeding, onSeed, onVerify }) => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { theme } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const dynamicStyles = styles(theme);
 
   return (
-    <View style={styles.header}>
+    <View style={dynamicStyles.header}>
       <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-        <Text style={styles.title}>Jitendex Kindle Reader</Text>
+        <Text style={dynamicStyles.title}>Jitendex Kindle Reader</Text>
       </TouchableOpacity>
       
-      <View style={styles.headerButtons}>
+      <View style={dynamicStyles.headerButtons}>
         {loadingSeeding ? (
-          <ActivityIndicator size="small" color={Theme.colors.accent} style={{ marginRight: 10 }} />
+          <ActivityIndicator size="small" color={theme.colors.accent} style={{ marginRight: 10 }} />
         ) : (
           <>
             <TouchableOpacity 
-              style={[styles.navButton, { backgroundColor: Theme.colors.success, marginRight: 8 }]} 
+              style={[dynamicStyles.navButton, { backgroundColor: theme.colors.success, marginRight: 8 }]} 
               onPress={onSeed}
             >
-              <Text style={styles.navButtonText}>Cargar DB</Text>
+              <Text style={dynamicStyles.navButtonText}>Cargar DB</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.navButton, { backgroundColor: Theme.colors.secondary }]} 
+              style={[dynamicStyles.navButton, { backgroundColor: theme.colors.secondary }]} 
               onPress={onVerify}
             >
-              <Text style={styles.navButtonText}>Verificar</Text>
+              <Text style={dynamicStyles.navButtonText}>Verificar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.navButton, { backgroundColor: Theme.colors.accent, marginLeft: 8 }]} 
+              style={[dynamicStyles.navButton, { backgroundColor: theme.colors.accent, marginLeft: 8 }]} 
               onPress={() => navigation.navigate('Settings')}
             >
-              <Text style={styles.navButtonText}>⚙️</Text>
+              <Text style={dynamicStyles.navButtonText}>⚙️</Text>
             </TouchableOpacity>
           </>
         )}
@@ -52,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({ loadingSeeding, onSeed, onVerify
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   header: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -60,11 +61,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15, 
     paddingVertical: 10, 
     borderBottomWidth: 1, 
-    borderBottomColor: Theme.colors.border,
-    backgroundColor: Theme.colors.surface,
+    borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
     zIndex: 10
   },
-  title: { fontSize: 16, fontWeight: 'bold', color: Theme.colors.header, fontFamily: Theme.fonts.serif },
+  title: { fontSize: 16, fontWeight: 'bold', color: theme.colors.header, fontFamily: theme.fonts.serif },
   headerButtons: {
     flexDirection: 'row',
     alignItems: 'center'
@@ -72,10 +73,10 @@ const styles = StyleSheet.create({
   navButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: Theme.radius.md,
+    borderRadius: theme.radius.md,
   },
   navButtonText: {
-    color: Theme.colors.onPrimary,
+    color: theme.colors.onPrimary,
     fontSize: 12,
     fontWeight: 'bold'
   },
