@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import WebView from 'react-native-webview';
 import scriptJs from '../webview/script';
@@ -6,11 +6,29 @@ import scriptJs from '../webview/script';
 interface ReaderProps {
   uri: string;
   onMessage: (event: any) => void;
+  onNavigationStateChange?: (navState: any) => void;
   isScannerEnabled?: boolean;
 }
 
-export const Reader: React.FC<ReaderProps> = ({ uri, onMessage, isScannerEnabled = true }) => {
+export interface ReaderRef {
+  goBack: () => void;
+  goForward: () => void;
+  reload: () => void;
+}
+
+export const Reader = forwardRef<ReaderRef, ReaderProps>(({ 
+  uri, 
+  onMessage, 
+  onNavigationStateChange,
+  isScannerEnabled = true 
+}, ref) => {
   const webViewRef = useRef<WebView>(null);
+
+  useImperativeHandle(ref, () => ({
+    goBack: () => webViewRef.current?.goBack(),
+    goForward: () => webViewRef.current?.goForward(),
+    reload: () => webViewRef.current?.reload(),
+  }));
 
   useEffect(() => {
     const js = `window.isScannerEnabled = ${isScannerEnabled}; true;`;
@@ -25,11 +43,12 @@ export const Reader: React.FC<ReaderProps> = ({ uri, onMessage, isScannerEnabled
         injectedJavaScript={scriptJs}
         source={{ uri }}
         onMessage={onMessage}
+        onNavigationStateChange={onNavigationStateChange}
         style={{ flex: 1 }}
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: { 

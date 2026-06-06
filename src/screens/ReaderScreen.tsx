@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 
 // Components
-import { Reader } from '../components/Reader';
+import { Reader, ReaderRef } from '../components/Reader';
 import { DictionaryPopup } from '../components/DictionaryPopup';
 
 // Hooks
@@ -21,24 +21,40 @@ export const ReaderScreen: React.FC = () => {
   const route = useRoute<ReaderScreenRouteProp>();
   const navigation = useNavigation();
   const { addToHistory, addBookmark, removeBookmark, bookmarks } = useBrowser();
-  const targetUrl = route.params?.url || 'https://www.google.com';
+  const readerRef = React.useRef<ReaderRef>(null);
+  
+  const initialUrl = route.params?.url || 'https://www.google.com';
+  const [currentUrl, setCurrentUrl] = React.useState(initialUrl);
+  const [canGoBack, setCanGoBack] = React.useState(false);
+  const [canGoForward, setCanGoForward] = React.useState(false);
 
-  const isFav = bookmarks.some(b => b.url === targetUrl);
+  const isFav = bookmarks.some(b => b.url === currentUrl);
 
   const toggleBookmark = async () => {
     if (isFav) {
-      const bookmark = bookmarks.find(b => b.url === targetUrl);
+      const bookmark = bookmarks.find(b => b.url === currentUrl);
       if (bookmark) await removeBookmark(bookmark.id);
     } else {
-      await addBookmark('Nueva Página', targetUrl);
+      await addBookmark('Nueva Página', currentUrl);
+    }
+  };
+
+  const handleNavigationStateChange = (navState: any) => {
+    setCanGoBack(navState.canGoBack);
+    setCanGoForward(navState.canGoForward);
+    
+    if (navState.url && navState.url !== currentUrl) {
+      setCurrentUrl(navState.url);
+      addToHistory(navState.url);
     }
   };
 
   useEffect(() => {
-    if (targetUrl) {
-      addToHistory(targetUrl);
+    if (initialUrl) {
+      setCurrentUrl(initialUrl);
+      addToHistory(initialUrl);
     }
-  }, [targetUrl, addToHistory]);
+  }, [initialUrl, addToHistory]);
 
   const { 
     results, 
@@ -55,10 +71,28 @@ export const ReaderScreen: React.FC = () => {
       {/* Mini Browser Header */}
       <View style={styles.miniHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Volver</Text>
+          <Text style={styles.backButtonText}>✕</Text>
         </TouchableOpacity>
+
+        <View style={styles.navControls}>
+          <TouchableOpacity 
+            onPress={() => readerRef.current?.goBack()} 
+            disabled={!canGoBack}
+            style={[styles.navButton, !canGoBack && styles.disabledButton]}
+          >
+            <Text style={styles.navButtonText}>←</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => readerRef.current?.goForward()} 
+            disabled={!canGoForward}
+            style={[styles.navButton, !canGoForward && styles.disabledButton]}
+          >
+            <Text style={styles.navButtonText}>→</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.urlDisplay}>
-          <Text style={styles.urlText} numberOfLines={1}>{targetUrl}</Text>
+          <Text style={styles.urlText} numberOfLines={1}>{currentUrl}</Text>
         </View>
         
         <TouchableOpacity 
@@ -79,8 +113,10 @@ export const ReaderScreen: React.FC = () => {
 
       <View style={styles.mainContent}>
         <Reader 
-          uri={targetUrl}
+          ref={readerRef}
+          uri={initialUrl}
           onMessage={handleWebViewMessage}
+          onNavigationStateChange={handleNavigationStateChange}
           isScannerEnabled={isScannerEnabled}
         />
 
@@ -109,11 +145,25 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.surface,
   },
   backButton: {
-    marginRight: Theme.spacing.sm,
+    marginRight: Theme.spacing.xs,
   },
   backButtonText: {
+    color: Theme.colors.textMuted,
+    fontSize: 18,
+  },
+  navControls: {
+    flexDirection: 'row',
+    marginRight: Theme.spacing.sm,
+  },
+  navButton: {
+    padding: 8,
+  },
+  navButtonText: {
+    fontSize: 20,
     color: Theme.colors.accent,
-    fontWeight: 'bold',
+  },
+  disabledButton: {
+    opacity: 0.3,
   },
   urlDisplay: {
     flex: 1,
