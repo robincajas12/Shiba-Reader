@@ -9,7 +9,7 @@ export class TermBankEntryRepository extends Repository<TermBankEntry> {
 
     async findByTermsAndReadings(candidates: string[]): Promise<TermBankEntry[]> {
         if (!candidates || candidates.length === 0) return [];
-
+        console.log("candidates recibidos para búsqueda:", candidates);
         const uniqueCandidates = [...new Set(candidates)].filter(Boolean);
         const placeholders = uniqueCandidates.map(() => '?').join(', ');
 
@@ -17,16 +17,16 @@ export class TermBankEntryRepository extends Repository<TermBankEntry> {
         const query = `
             SELECT * FROM term_bank WHERE term IN (${placeholders})
             UNION ALL
-            SELECT * FROM term_bank WHERE reading IN (${placeholders}) LIMIT 5
+            SELECT * FROM term_bank WHERE reading IN (${placeholders})
         `;
 
         const params = [...uniqueCandidates, ...uniqueCandidates];
 
         try {
-            const start = Date.now();
+            const start =await Date.now();
             const result = await db.execute(query, params);
-            const duration = Date.now() - start;
-            console.log(`findByTermsAndReadings ${duration}ms`);
+            const duration =await Date.now() - start;
+            console.log(`findByTermsAndReadings ${await duration}ms`);
             
             return (await result.rows || []) as TermBankEntry[];
         } catch (error) {

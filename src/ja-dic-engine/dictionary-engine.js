@@ -81,7 +81,7 @@ export class JitendexEngine {
                 this.segmenter
                     .segment(remainingText)
                     .slice(0, 4);
-
+                console.log('Tokens siguientes para combinación:', nextTokens);
             for (const nextT of nextTokens) {
                 if (/[、。！？\s]/.test(nextT)) {
                     break;

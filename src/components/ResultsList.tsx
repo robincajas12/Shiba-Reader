@@ -19,6 +19,11 @@ export const ResultsList: React.FC<ResultsListProps> = React.memo(({ results, lo
       </View>
 
       <View style={styles.resultsScroll}>
+        {loading && results.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>Buscando definición...</Text>
+          </View>
+        )}
         {!loading && results.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
