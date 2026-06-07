@@ -19,6 +19,7 @@ export const SRSReviewScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [showContext, setShowContext] = useState(false);
 
   // Contar duplicados en la sesión actual
   const duplicateTerms = useMemo(() => {
@@ -48,6 +49,7 @@ export const SRSReviewScreen: React.FC = () => {
     if (currentIndex < reviews.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setShowAnswer(false);
+      setShowContext(false);
     } else {
       // Fin de la sesión
       setReviews([]);
@@ -84,6 +86,7 @@ export const SRSReviewScreen: React.FC = () => {
   const current = reviews[currentIndex];
   const isReadingCard = current.card_type === 0;
   const isDuplicated = duplicateTerms[current.term] > 1;
+  const shouldShowContext = isDuplicated || mode === 'queue' || showContext;
 
   return (
     <SafeAreaView style={dynamicStyles.container}>
@@ -101,15 +104,24 @@ export const SRSReviewScreen: React.FC = () => {
       <View style={dynamicStyles.card}>
         <Text style={dynamicStyles.term}>{current.term}</Text>
 
-        {(isDuplicated || mode === 'queue') && !showAnswer && (
+        {shouldShowContext && !showAnswer && (
           <View style={dynamicStyles.duplicateWarning}>
             <Text style={dynamicStyles.duplicateWarningText}>
-              {mode === 'queue' ? 'Recent encounter context:' : '⚠️ Duplicate term. Use context:'}
+              {mode === 'queue' ? 'Recent encounter context:' : isDuplicated ? '⚠️ Duplicate term. Use context:' : 'Context:'}
             </Text>
             <Text style={dynamicStyles.duplicateSentencePreview} numberOfLines={3}>
               "{current.sentence}"
             </Text>
           </View>
+        )}
+        
+        {!showAnswer && !shouldShowContext && (
+          <TouchableOpacity 
+            style={dynamicStyles.showContextButton} 
+            onPress={() => setShowContext(true)}
+          >
+            <Text style={dynamicStyles.showContextButtonText}>Show Context</Text>
+          </TouchableOpacity>
         )}
         
         {showAnswer ? (
@@ -239,6 +251,20 @@ const styles = (theme: any) => StyleSheet.create({
   },
   revealButtonText: { color: theme.colors.onPrimary, fontSize: 18, fontWeight: 'bold' },
   revealSubtext: { color: theme.colors.onPrimary, opacity: 0.7, fontSize: 12, textAlign: 'center', marginTop: 5 },
+  showContextButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: 20,
+  },
+  showContextButtonText: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: 'bold',
+  },
   answerContainer: { width: '100%' },
   readingLabel: { fontSize: 12, color: theme.colors.textMuted, marginBottom: 4, fontWeight: 'bold' },
   reading: { fontSize: 24, color: theme.colors.accent, marginBottom: 20 },

@@ -88,10 +88,11 @@ export abstract class Repository<T extends { [key: string]: unknown }> {
 
     public async insert(entity: T): Promise<void> {
         const { sql, args } = this.getInsertQueryAndValues(entity);
-        const statement = await db.prepareStatement(sql);
-
-        await statement.bindSync(args as any[]); 
-        await statement.execute();
+        const result = await db.execute(sql, args);
+        
+        if (result.insertId !== undefined) {
+            (entity as any).id = result.insertId;
+        }
     }
 
     private getColumns(excludeId: boolean = true): string[] {
