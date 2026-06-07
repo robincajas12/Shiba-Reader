@@ -32,4 +32,13 @@ export class VocabularyRepository extends Repository<VocabularyEntry> {
         const rows = result.rows as any[];
         return rows[0]?.count || 0;
     }
+
+    async updateLatestSentence(newSentence: string): Promise<void> {
+        const query = `
+            UPDATE ${this.table.name} 
+            SET sentence = ? 
+            WHERE id = (SELECT id FROM ${this.table.name} ORDER BY created_at DESC LIMIT 1)
+        `;
+        await db.execute(query, [newSentence]);
+    }
 }

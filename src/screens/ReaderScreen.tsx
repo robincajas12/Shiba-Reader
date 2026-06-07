@@ -9,6 +9,7 @@ import { DictionaryPopup } from '../components/DictionaryPopup';
 // Hooks
 import { useReaderLookup } from '../hooks/useReaderLookup';
 import { useBrowser } from '../hooks/useBrowser';
+import { useVocabulary } from '../hooks/useVocabulary';
 import { useTheme } from '../ThemeContext';
 
 type RootStackParamList = {
@@ -22,6 +23,7 @@ export const ReaderScreen: React.FC = () => {
   const route = useRoute<ReaderScreenRouteProp>();
   const navigation = useNavigation();
   const { addToHistory, addBookmark, removeBookmark, bookmarks } = useBrowser();
+  const { updateLastCardSentence } = useVocabulary();
   const readerRef = React.useRef<ReaderRef>(null);
   
   const initialUrl = route.params?.url || 'https://www.google.com';
@@ -71,8 +73,16 @@ export const ReaderScreen: React.FC = () => {
     toggleScanner,
     handleWebViewMessage, 
     handleSelectionSearch,
-    closePopup 
+    closePopup,
+    hideSelectionMenu
   } = useReaderLookup();
+
+  const handleUpdateSentence = async () => {
+    if (selectionMenu.text) {
+      await updateLastCardSentence(selectionMenu.text);
+      hideSelectionMenu();
+    }
+  };
 
   const dynamicStyles = styles(theme);
 
@@ -143,20 +153,33 @@ export const ReaderScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Botón de búsqueda por selección */}
+        {/* Menú de búsqueda por selección */}
         {selectionMenu.visible && (
-          <TouchableOpacity 
+          <View 
             style={[
-              dynamicStyles.selectionButton, 
+              dynamicStyles.selectionMenuContainer, 
               { 
-                top: Math.max(10, selectionMenu.top - 50), 
-                left: Math.min(Dimensions.get('window').width - 100, selectionMenu.left) 
+                top: Math.max(10, selectionMenu.top - 60), 
+                left: Math.max(10, Math.min(Dimensions.get('window').width - 240, selectionMenu.left - 50)) 
               }
             ]}
-            onPress={handleSelectionSearch}
           >
-            <Text style={dynamicStyles.selectionButtonText}>Busca</Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={dynamicStyles.selectionMenuButton}
+              onPress={handleSelectionSearch}
+            >
+              <Text style={dynamicStyles.selectionButtonText}>Look-up</Text>
+            </TouchableOpacity>
+
+            <View style={dynamicStyles.selectionMenuDivider} />
+
+            <TouchableOpacity 
+              style={dynamicStyles.selectionMenuButton}
+              onPress={handleUpdateSentence}
+            >
+              <Text style={dynamicStyles.selectionButtonText}>Update Last Card</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
 
@@ -262,24 +285,35 @@ const styles = (theme: any) => StyleSheet.create({
     color: theme.colors.textMuted,
     fontWeight: '500',
   },
-  selectionButton: {
+  selectionMenuContainer: {
     position: 'absolute',
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    flexDirection: 'row',
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: theme.colors.primary,
-    elevation: 5,
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
     zIndex: 1000,
+    overflow: 'hidden',
+  },
+  selectionMenuButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectionMenuDivider: {
+    width: 1,
+    backgroundColor: theme.colors.border,
+    marginVertical: 8,
   },
   selectionButtonText: {
     color: theme.colors.primary,
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 13,
   },
 });

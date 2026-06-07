@@ -183,6 +183,8 @@ export const useReaderLookup = () => {
 
   const closePopup = () => setPopup(prev => ({ ...prev, visible: false }));
 
+  const hideSelectionMenu = () => setSelectionMenu(prev => ({ ...prev, visible: false }));
+
   return {
     results: sortedResults,
     loading,
@@ -192,6 +194,7 @@ export const useReaderLookup = () => {
     toggleScanner,
     handleWebViewMessage,
     handleSelectionSearch,
-    closePopup
+    closePopup,
+    hideSelectionMenu
   };
 };
