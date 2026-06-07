@@ -3,8 +3,9 @@ import { JitendexEngine } from './ja-dic-engine/dictionary-engine';
 import { TinySegmenter } from './ja-dic-engine/tiny_segmenter';
 import { LookupResult } from './types';
 
-// OBTENEMOS EL REPOSITORIO REAL (TypeScript valida que la llave sea correcta)
+// OBTENEMOS LOS REPOSITORIOS REALES
 const termRepository = dbEngine.getRepository('TermBankEntryRepository');
+const settingsRepository = dbEngine.getRepository('SettingsRepository');
 
 // Instancias Privadas
 const segmenter = new TinySegmenter();
@@ -31,15 +32,20 @@ export const lookupToken = async (
 
     const word = tokens[tokenIndex];
     const fullText = tokens.join('');
-    
+
     let startIdx = 0;
     for (let i = 0; i < tokenIndex; i++) {
         startIdx += tokens[i].length;
     }
 
     try {
+        // Obtener preferencia de búsqueda
+        const searchByReading = await settingsRepository.get('searchByReading', 'false');
+
         // Ejecutamos el nuevo lookup que hace las consultas a SQLite
-        const matches = await engine.lookup(word, startIdx, fullText);
+        const matches = await engine.lookup(word, startIdx, fullText, {
+            includeReading: searchByReading === 'true'
+        });
         return matches as LookupResult[];
     } catch (error) {
         console.error('Error en lookupToken:', error);
@@ -58,10 +64,15 @@ export const lookupAtCharacterIndex = async (
 
     // Tomamos el carácter donde se hizo clic como punto de partida
     const clickedChar = text[charIndex];
-    
+
     try {
+        // Obtener preferencia de búsqueda
+        const searchByReading = await settingsRepository.get('searchByReading', 'false');
+
         // Buscamos usando la optimización del índice compuesto en SQL
-        const matches = await engine.lookup(clickedChar, charIndex, text);
+        const matches = await engine.lookup(clickedChar, charIndex, text, {
+            includeReading: searchByReading === 'true'
+        });
         return matches as LookupResult[];
     } catch (error) {
         console.error('Error en lookupAtCharacterIndex:', error);

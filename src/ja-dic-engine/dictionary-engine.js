@@ -36,7 +36,8 @@ export class JitendexEngine {
      * Realiza una búsqueda avanzada
      * (exacta + desinflexión + combinación)
      */
-    async lookup(clickedWord, startIdx = 0, fullText = '') {
+    async lookup(clickedWord, startIdx = 0, fullText = '', options = {}) {
+        const { includeReading = false } = options;
         const matches = [];
         const searchCandidates = [];
 
@@ -127,7 +128,7 @@ export class JitendexEngine {
 
         if (uniqueTexts.length > 0) {
             try {
-                const databaseRows = await this.termRepository.findByTermsAndReadings(uniqueTexts);
+                const databaseRows = await this.termRepository.findByTermsAndReadings(uniqueTexts, includeReading);
 
                 // 🚀 Indexamos resultados en un Mapa para O(1) lookup
                 const rowsMap = new Map();

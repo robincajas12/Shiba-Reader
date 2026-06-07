@@ -23,7 +23,7 @@ export const TableTermBank: Table = {
         definition_tags: { name: 'definition_tags', type: 'TEXT' },
         deinflection_rules: { name: 'deinflection_rules', type: 'TEXT' },
         score: { name: 'score', type: 'INTEGER' },
-        glossary: { name: 'glossary', type: 'TEXT' }, // Almacenará el JSON estructurado como texto
+        glossary: { name: 'glossary', type: 'TEXT' }, // Almacenará el JSON estructurado como texto solo de la defincion
         sequence: { name: 'sequence', type: 'INTEGER' },
         entry_tags: { name: 'entry_tags', type: 'TEXT' }
     },

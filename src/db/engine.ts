@@ -77,12 +77,11 @@ const Repositories: RepositoryMap = {
 };
 
 const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory, TableVocabulary, TableSettings], Repositories);
-dbEngine.createTables();
+
 async function verificarIndicesReales() {
     // Le pedimos a SQLite que nos muestre todos los índices creados en la base de datos
     const result = await db.execute("SELECT name, tbl_name FROM sqlite_master WHERE type='index';");
     console.log("📊 ÍNDICES REALES EN EL DISCO:", JSON.stringify(await result.rows || result.rows));
 }
-dbEngine.createTables().then(() => verificarIndicesReales());
 
-export { dbEngine };
+export { dbEngine, verificarIndicesReales };

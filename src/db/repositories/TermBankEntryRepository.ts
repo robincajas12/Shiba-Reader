@@ -7,30 +7,38 @@ export class TermBankEntryRepository extends Repository<TermBankEntry> {
         super(TableTermBank);
     }
 
-    async findByTermsAndReadings(candidates: string[]): Promise<TermBankEntry[]> {
+    async findByTermsAndReadings(candidates: string[], includeReading: boolean = false): Promise<TermBankEntry[]> {
         if (!candidates || candidates.length === 0) return [];
-        console.log("candidates recibidos para búsqueda:", candidates);
+        console.log("candidates recibidos para búsqueda:", candidates, "includeReading:", includeReading);
         const uniqueCandidates = [...new Set(candidates)].filter(Boolean);
         const placeholders = uniqueCandidates.map(() => '?').join(', ');
 
-        // 🚀 OPTIMIZACIÓN BALANCEADA: Dos grandes búsquedas indexadas unidas
-        const query = `
-            SELECT * FROM term_bank WHERE term IN (${placeholders})
-            UNION ALL
-            SELECT * FROM term_bank WHERE reading IN (${placeholders})
-        `;
+        let query: string;
+        let params: any[];
 
-        const params = [...uniqueCandidates, ...uniqueCandidates];
+        if (includeReading) {
+            // 🚀 OPTIMIZACIÓN BALANCEADA: Dos grandes búsquedas indexadas unidas
+            query = `
+                SELECT * FROM term_bank WHERE term IN (${placeholders})
+                UNION ALL
+                SELECT * FROM term_bank WHERE reading IN (${placeholders})
+            `;
+            params = [...uniqueCandidates, ...uniqueCandidates];
+        } else {
+            // Solo buscar por término (por defecto)
+            query = `SELECT * FROM term_bank WHERE term IN (${placeholders})`;
+            params = uniqueCandidates;
+        }
 
         try {
-            const start =await Date.now();
+            const start = Date.now();
             const result = await db.execute(query, params);
-            const duration =await Date.now() - start;
-            console.log(`findByTermsAndReadings ${await duration}ms`);
+            const duration = Date.now() - start;
+            console.log(`findByTermsAndReadings ${duration}ms`);
             
-            return (await result.rows || []) as TermBankEntry[];
+            return (result.rows || []) as TermBankEntry[];
         } catch (error) {
-            console.error("Error en query UNION ALL:", error);
+            console.error("Error en query de búsqueda:", error);
             return [];
         }
     }
