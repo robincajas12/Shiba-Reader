@@ -61,20 +61,14 @@ export const useReaderLookup = () => {
   const handleSelectionSearch = async () => {
     if (!selectionMenu.text) return;
 
-    const { text, sentence, charIndex, top, left } = selectionMenu;
+    const { text, sentence, charIndex } = selectionMenu;
 
-    // Posicionamiento del popup de diccionario (mismo que el click)
+    // Posicionamiento centrado del popup de diccionario
     const popupWidth = SCREEN_WIDTH * 0.88;
     const popupHeight = 220;
 
-    let leftPos = left - popupWidth / 2;
-    if (leftPos < 15) leftPos = 15;
-    if (leftPos + popupWidth > SCREEN_WIDTH - 15) leftPos = SCREEN_WIDTH - popupWidth - 15;
-
-    let topPos = top + 30; // Un poco debajo de la selección
-    if (topPos + popupHeight > SCREEN_HEIGHT - 60) {
-      topPos = top - popupHeight - 15;
-    }
+    const leftPos = (SCREEN_WIDTH - popupWidth) / 2;
+    const topPos = (SCREEN_HEIGHT - popupHeight) / 2;
 
     setResults([]);
     setLoading(true);
@@ -146,15 +140,8 @@ export const useReaderLookup = () => {
         const popupWidth = SCREEN_WIDTH * 0.88;
         const popupHeight = 220; 
 
-        let leftPos = x - popupWidth / 2;
-        if (leftPos < 15) leftPos = 15;
-        if (leftPos + popupWidth > SCREEN_WIDTH - 15) leftPos = SCREEN_WIDTH - popupWidth - 15;
-
-        let topPos = (rectBottom || y) + 10; 
-        
-        if (topPos + popupHeight > SCREEN_HEIGHT - 60) {
-          topPos = y - popupHeight - 15; 
-        }
+        const leftPos = (SCREEN_WIDTH - popupWidth) / 2;
+        const topPos = (SCREEN_HEIGHT - popupHeight) / 2;
 
         setResults([]); 
         setLoading(true);

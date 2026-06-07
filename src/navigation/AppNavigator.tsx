@@ -9,6 +9,7 @@ import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
 import { MoreScreen } from '../screens/MoreScreen';
+import { SRSReviewScreen } from '../screens/SRSReviewScreen';
 import { useTheme } from '../ThemeContext';
 
 export type RootTabParamList = {
@@ -22,6 +23,7 @@ export type MoreStackParamList = {
   More: undefined;
   Search: undefined;
   Settings: undefined;
+  SRSReview: { mode: 'normal' | 'queue' };
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -56,6 +58,14 @@ const MoreNavigator = () => {
         name="Settings" 
         component={SettingsScreen} 
         options={{ title: 'Settings' }} 
+      />
+      <Stack.Screen 
+        name="SRSReview" 
+        component={SRSReviewScreen} 
+        options={({ route }) => ({ 
+          title: route.params?.mode === 'queue' ? 'Mining Queue' : 'Daily Review', 
+          headerShown: false 
+        })} 
       />
     </Stack.Navigator>
   );

@@ -41,4 +41,10 @@ export class VocabularyRepository extends Repository<VocabularyEntry> {
         `;
         await db.execute(query, [newSentence]);
     }
+
+    async findByTerm(term: string): Promise<VocabularyEntry[]> {
+        const query = `SELECT * FROM ${this.table.name} WHERE term = ?`;
+        const result = await db.execute(query, [term]);
+        return result.rows as VocabularyEntry[];
+    }
 }

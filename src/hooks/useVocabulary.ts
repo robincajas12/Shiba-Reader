@@ -39,10 +39,10 @@ export const useVocabulary = () => {
 
     const addVocabulary = useCallback(async (term: string, reading: string, definition: string, sentence: string) => {
         try {
-            // Check for duplicates
+            // Permitimos duplicados del término siempre que la oración sea distinta
             const existing = await vocabRepo.findDuplicate(term, reading, sentence);
             if (existing) {
-                console.log("Vocabulary entry already exists");
+                console.log("Esta combinación de palabra y oración ya existe");
                 return false;
             }
 

@@ -16,6 +16,12 @@ export const MoreScreen: React.FC = () => {
 
   const menuItems = [
     {
+      title: 'SRS Review',
+      icon: '🧠',
+      description: 'Review words you forgot while reading.',
+      onPress: () => navigation.navigate('SRSReview'),
+    },
+    {
       title: 'Search',
       icon: '🔍',
       description: 'Search terms in installed dictionaries.',

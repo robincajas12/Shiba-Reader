@@ -6,11 +6,13 @@ import { PruebaRepository } from './repositories/PruebaRepository';
 import { BookmarkRepository } from './repositories/BookmarkRepository';
 import { HistoryRepository } from './repositories/HistoryRepository';
 import { VocabularyRepository } from './repositories/VocabularyRepository';
+import { SRSRepository } from './repositories/SRSRepository';
 import { SettingsRepository } from './repositories/SettingsRepository';
 import { TableTermBank } from './schemas/Term';
 import { TablePrueba } from './schemas/Prueba';
 import { TableBookmark, TableHistory } from './schemas/Browser';
 import { TableVocabulary } from './schemas/Vocabulary';
+import { TableSRS } from './schemas/SRS';
 import { TableSettings } from './schemas/Settings';
 
 // Definimos el mapa de tipos estricto para los repositorios
@@ -20,6 +22,7 @@ interface RepositoryMap {
     'BookmarkRepository': BookmarkRepository;
     'HistoryRepository': HistoryRepository;
     'VocabularyRepository': VocabularyRepository;
+    'SRSRepository': SRSRepository;
     'SettingsRepository': SettingsRepository;
 }
 
@@ -73,15 +76,18 @@ const Repositories: RepositoryMap = {
     'BookmarkRepository': new BookmarkRepository(),
     'HistoryRepository': new HistoryRepository(),
     'VocabularyRepository': new VocabularyRepository(),
+    'SRSRepository': new SRSRepository(),
     'SettingsRepository': new SettingsRepository()
 };
 
-const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory, TableVocabulary, TableSettings], Repositories);
+const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory, TableVocabulary, TableSRS, TableSettings], Repositories);
 
 async function verificarIndicesReales() {
     // Le pedimos a SQLite que nos muestre todos los índices creados en la base de datos
     const result = await db.execute("SELECT name, tbl_name FROM sqlite_master WHERE type='index';");
     console.log("📊 ÍNDICES REALES EN EL DISCO:", JSON.stringify(await result.rows || result.rows));
 }
+
+
 
 export { dbEngine, verificarIndicesReales };
