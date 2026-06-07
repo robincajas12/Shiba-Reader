@@ -273,7 +273,7 @@ const styles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.primary,
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: theme.colors.background,
     justifyContent: 'center',
     alignItems: 'center',

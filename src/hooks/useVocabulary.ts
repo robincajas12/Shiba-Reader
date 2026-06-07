@@ -42,17 +42,35 @@ export const useVocabulary = () => {
             // Permitimos duplicados del término siempre que la oración sea distinta
             const existing = await vocabRepo.findDuplicate(term, reading, sentence);
             if (existing) {
-                console.log("Esta combinación de palabra y oración ya existe");
+                console.log("This word/sentence combination already exists");
                 return false;
             }
 
-            await vocabRepo.insert({
+            const vocabEntry = {
                 term,
                 reading,
                 definition,
                 sentence,
                 created_at: Date.now()
-            } as VocabularyEntry);
+            } as VocabularyEntry;
+
+            await vocabRepo.insert(vocabEntry);
+            
+            // Creamos automáticamente la entrada en el SRS para que aparezca en la cola
+            if (vocabEntry.id) {
+                const srsRepo = dbEngine.getRepository('SRSRepository');
+                await srsRepo.insert({
+                    vocab_id: vocabEntry.id,
+                    card_type: 1, // Normal by default
+                    interval: 0,
+                    ease_factor: 2.5,
+                    repetitions: 0,
+                    next_review: Date.now(),
+                    last_lookup: Date.now(),
+                    created_at: Date.now(),
+                    id: 0
+                });
+            }
             
             await loadVocabulary();
             return true;
