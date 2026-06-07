@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 
 // Components
@@ -66,9 +66,11 @@ export const ReaderScreen: React.FC = () => {
     results, 
     loading, 
     popup, 
+    selectionMenu,
     isScannerEnabled,
     toggleScanner,
     handleWebViewMessage, 
+    handleSelectionSearch,
     closePopup 
   } = useReaderLookup();
 
@@ -139,6 +141,22 @@ export const ReaderScreen: React.FC = () => {
             <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text style={dynamicStyles.loadingText}>Loading page...</Text>
           </View>
+        )}
+
+        {/* Botón de búsqueda por selección */}
+        {selectionMenu.visible && (
+          <TouchableOpacity 
+            style={[
+              dynamicStyles.selectionButton, 
+              { 
+                top: Math.max(10, selectionMenu.top - 50), 
+                left: Math.min(Dimensions.get('window').width - 100, selectionMenu.left) 
+              }
+            ]}
+            onPress={handleSelectionSearch}
+          >
+            <Text style={dynamicStyles.selectionButtonText}>Busca</Text>
+          </TouchableOpacity>
         )}
 
 
@@ -243,5 +261,25 @@ const styles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     color: theme.colors.textMuted,
     fontWeight: '500',
+  },
+  selectionButton: {
+    position: 'absolute',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    zIndex: 1000,
+  },
+  selectionButtonText: {
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });

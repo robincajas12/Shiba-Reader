@@ -62,20 +62,40 @@ export const lookupAtCharacterIndex = async (
 ): Promise<LookupResult[]> => {
     if (!text || charIndex < 0 || charIndex >= text.length) return [];
 
-    // Tomamos el carácter donde se hizo clic como punto de partida
     const clickedChar = text[charIndex];
 
     try {
-        // Obtener preferencia de búsqueda
         const searchByReading = await settingsRepository.get('searchByReading', 'false');
-
-        // Buscamos usando la optimización del índice compuesto en SQL
         const matches = await engine.lookup(clickedChar, charIndex, text, {
             includeReading: searchByReading === 'true'
         });
         return matches as LookupResult[];
     } catch (error) {
         console.error('Error en lookupAtCharacterIndex:', error);
+        return [];
+    }
+};
+
+/**
+ * Función 4: Busca un término forzado (como una selección manual)
+ */
+export const lookupWithForcedTerm = async (
+    sentence: string,
+    term: string,
+    charIndex: number
+): Promise<LookupResult[]> => {
+    if (!sentence || !term) return [];
+
+    try {
+        const searchByReading = await settingsRepository.get('searchByReading', 'false');
+
+        // Llamamos al motor con el término seleccionado manualmente
+        const matches = await engine.lookup(term, charIndex, sentence, {
+            includeReading: searchByReading === 'true'
+        });
+        return matches as LookupResult[];
+    } catch (error) {
+        console.error('Error en lookupWithForcedTerm:', error);
         return [];
     }
 };
