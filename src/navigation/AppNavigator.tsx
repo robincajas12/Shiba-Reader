@@ -83,8 +83,9 @@ const TabIcon = ({ label, focused }: { label: string; focused: boolean }) => {
   return (
     <Text style={{ 
       color: focused ? theme.colors.primary : theme.colors.textMuted, 
-      fontSize: 20,
-      marginTop: 5
+      fontSize: 22,
+      lineHeight: 28,
+      textAlign: 'center',
     }}>
       {label}
     </Text>
@@ -101,16 +102,17 @@ export const AppNavigator = () => {
         headerShown: true,
         tabBarIcon: ({ focused }) => {
           let icon = '';
-          if (route.name === 'Home') icon = '🏠';
-          else if (route.name === 'Reader') icon = '📖';
-          else if (route.name === 'Vocabulary') icon = '🔖';
-          else if (route.name === 'MoreStack') icon = '⋯';
+          if (route.name === 'Home') icon = '家';
+          else if (route.name === 'Reader') icon = '読';
+          else if (route.name === 'Vocabulary') icon = '語';
+          else if (route.name === 'MoreStack') icon = '他';
           return <TabIcon label={icon} focused={focused} />;
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarStyle: {
-          height: 60,
+          height: 65,
+          paddingTop: 8,
           paddingBottom: 10,
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,

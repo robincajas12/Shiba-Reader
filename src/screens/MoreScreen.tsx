@@ -17,25 +17,25 @@ export const MoreScreen: React.FC = () => {
   const menuItems = [
     {
       title: 'SRS Review',
-      icon: '🧠',
+      icon: '習',
       description: 'Review words you forgot while reading.',
       onPress: () => navigation.navigate('SRSReview'),
     },
     {
       title: 'Search',
-      icon: '🔍',
+      icon: '検',
       description: 'Search terms in installed dictionaries.',
       onPress: () => navigation.navigate('Search'),
     },
     {
       title: 'Settings',
-      icon: '⚙️',
+      icon: '設',
       description: 'Configuration, themes, and dictionary management.',
       onPress: () => navigation.navigate('Settings'),
     },
     {
       title: 'Legal & Credits',
-      icon: '⚖️',
+      icon: '法',
       description: 'Dictionary licenses and original source credits.',
       onPress: () => navigation.navigate('Legal'),
     },
