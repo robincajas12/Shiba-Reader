@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Animated } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 
 // Components
@@ -24,18 +24,46 @@ export const ReaderScreen: React.FC = () => {
   const navigation = useNavigation();
   const { addToHistory, addBookmark, removeBookmark, bookmarks } = useBrowser();
   const { updateLastCardSentence } = useVocabulary();
-  const readerRef = React.useRef<ReaderRef>(null);
+  const readerRef = useRef<ReaderRef>(null);
   
   const initialUrl = route.params?.url || 'https://www.google.com';
-  const [currentUrl, setCurrentUrl] = React.useState(initialUrl);
-  const [canGoBack, setCanGoBack] = React.useState(false);
-  const [canGoForward, setCanGoForward] = React.useState(false);
+  const [currentUrl, setCurrentUrl] = useState(initialUrl);
+  const [canGoBack, setCanGoBack] = useState(false);
+  const [canGoForward, setCanGoForward] = useState(false);
   
   // Loading states
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [progress, setProgress] = React.useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  // Tools Settings
+  const [showTools, setShowTools] = useState(false);
+  const toolsAnim = useRef(new Animated.Value(0)).current;
+  const [fontSize, setFontSize] = useState(100);
+  const [furiganaVisible, setFuriganaVisible] = useState(true);
 
   const isFav = bookmarks.some(b => b.url === currentUrl);
+
+  // Animation for tools shelf
+  useEffect(() => {
+    Animated.spring(toolsAnim, {
+      toValue: showTools ? 1 : 0,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 8
+    }).start();
+  }, [showTools]);
+
+  // Sync tools with WebView
+  useEffect(() => {
+    if (readerRef.current) {
+        if (typeof readerRef.current.setFontSize === 'function') {
+            readerRef.current.setFontSize(fontSize);
+        }
+        if (typeof readerRef.current.setFuriganaVisible === 'function') {
+            readerRef.current.setFuriganaVisible(furiganaVisible);
+        }
+    }
+  }, [fontSize, furiganaVisible]); // Eliminamos isLoading de la dependencia y del guard
 
   const toggleBookmark = async () => {
     if (isFav) {
@@ -65,30 +93,20 @@ export const ReaderScreen: React.FC = () => {
   }, [initialUrl, addToHistory]);
 
   const { 
-    results, 
-    loading, 
-    popup, 
-    selectionMenu,
-    isScannerEnabled,
-    toggleScanner,
-    handleWebViewMessage, 
-    handleSelectionSearch,
-    closePopup,
-    hideSelectionMenu
+    results, loading, popup, selectionMenu, isScannerEnabled, toggleScanner,
+    handleWebViewMessage, handleSelectionSearch, closePopup, hideSelectionMenu
   } = useReaderLookup();
-
-  const handleUpdateSentence = async () => {
-    if (selectionMenu.text) {
-      await updateLastCardSentence(selectionMenu.text);
-      hideSelectionMenu();
-    }
-  };
 
   const dynamicStyles = styles(theme);
 
+  const toolsTranslateY = toolsAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-120, 0]
+  });
+
   return (
     <View style={dynamicStyles.container}>
-      {/* Mini Browser Header */}
+      {/* RESTORED ORIGINAL HEADER STYLE */}
       <View style={dynamicStyles.miniHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backButton}>
           <Text style={dynamicStyles.backButtonText}>✕</Text>
@@ -115,82 +133,84 @@ export const ReaderScreen: React.FC = () => {
           <Text style={dynamicStyles.urlText} numberOfLines={1}>{currentUrl}</Text>
         </View>
         
-        <TouchableOpacity 
-          onPress={toggleScanner} 
-          style={dynamicStyles.scannerToggle}
-        >
-          <Text style={[dynamicStyles.scannerToggleText, !isScannerEnabled && dynamicStyles.scannerDisabled]}>
-        {isScannerEnabled ? '📖' : '🔒'}   
-       </Text>
-        </TouchableOpacity>
+        <View style={dynamicStyles.headerActions}>
+            <TouchableOpacity 
+                onPress={() => setShowTools(!showTools)} 
+                style={[dynamicStyles.actionBtn, showTools && dynamicStyles.actionBtnActive]}
+            >
+                <Text style={dynamicStyles.actionIcon}>🛠️</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.favButton}>
-          <Text style={[dynamicStyles.favButtonText, isFav && dynamicStyles.favActive]}>
-            {isFav ? '★' : '☆'}
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.favButton}>
+                <Text style={[dynamicStyles.favButtonText, isFav && dynamicStyles.favActive]}>
+                    {isFav ? '★' : '☆'}
+                </Text>
+            </TouchableOpacity>
+        </View>
 
-        {/* Progress Bar */}
         {isLoading && (
           <View style={[dynamicStyles.progressBar, { width: `${progress * 100}%` }]} />
         )}
       </View>
 
       <View style={dynamicStyles.mainContent}>
+        {/* TOOLS SHELF */}
+        <Animated.View style={[dynamicStyles.toolsShelf, { transform: [{ translateY: toolsTranslateY }] }]}>
+            <View style={dynamicStyles.shelfContent}>
+                <View style={dynamicStyles.toolGroup}>
+                    <Text style={dynamicStyles.toolLabel}>FONT SIZE</Text>
+                    <View style={dynamicStyles.row}>
+                        <TouchableOpacity onPress={() => setFontSize(Math.max(50, fontSize-10))} style={dynamicStyles.shelfItem}>
+                            <Text style={dynamicStyles.shelfItemText}>A-</Text>
+                        </TouchableOpacity>
+                        <Text style={dynamicStyles.sizeValue}>{fontSize}%</Text>
+                        <TouchableOpacity onPress={() => setFontSize(Math.min(200, fontSize+10))} style={dynamicStyles.shelfItem}>
+                            <Text style={dynamicStyles.shelfItemText}>A+</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={dynamicStyles.vDivider} />
+                <View style={dynamicStyles.toolGroup}>
+                    <Text style={dynamicStyles.toolLabel}>READING</Text>
+                    <View style={dynamicStyles.row}>
+                        <TouchableOpacity onPress={() => setFuriganaVisible(!furiganaVisible)} style={[dynamicStyles.shelfItem, furiganaVisible && dynamicStyles.shelfItemActive]}>
+                            <Text style={[dynamicStyles.shelfItemText, furiganaVisible && {color:'#fff'}]}>あ</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={toggleScanner} style={[dynamicStyles.shelfItem, isScannerEnabled && dynamicStyles.shelfItemActive]}>
+                            <Text style={[dynamicStyles.shelfItemText, isScannerEnabled && {color:'#fff'}]}>{isScannerEnabled ? '📖' : '🔒'}</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Animated.View>
+
         <Reader 
           ref={readerRef}
           uri={initialUrl}
-          onMessage={handleWebViewMessage}
+          onMessage={(e) => {
+            if (showTools) setShowTools(false);
+            handleWebViewMessage(e);
+          }}
           onNavigationStateChange={handleNavigationStateChange}
           onLoadProgress={(e: any) => setProgress(e.nativeEvent.progress)}
           isScannerEnabled={isScannerEnabled}
         />
 
-        {isLoading && progress < 0.9 && (
-          <View style={dynamicStyles.loadingOverlay} pointerEvents="none">
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={dynamicStyles.loadingText}>Loading page...</Text>
-          </View>
-        )}
-
-        {/* Menú de búsqueda por selección */}
         {selectionMenu.visible && (
-          <View 
-            style={[
-              dynamicStyles.selectionMenuContainer, 
-              { 
-                top: Math.max(10, selectionMenu.top - 60), 
-                left: Math.max(10, Math.min(Dimensions.get('window').width - 240, selectionMenu.left - 50)) 
-              }
-            ]}
-          >
-            <TouchableOpacity 
-              style={dynamicStyles.selectionMenuButton}
-              onPress={handleSelectionSearch}
-            >
+          <View style={[dynamicStyles.selectionMenuContainer, { top: Math.max(10, selectionMenu.top - 60), left: Math.max(10, Math.min(Dimensions.get('window').width - 240, selectionMenu.left - 50)) }]}>
+            <TouchableOpacity style={dynamicStyles.selectionMenuButton} onPress={handleSelectionSearch}>
               <Text style={dynamicStyles.selectionButtonText}>Look-up</Text>
             </TouchableOpacity>
-
             <View style={dynamicStyles.selectionMenuDivider} />
-
-            <TouchableOpacity 
-              style={dynamicStyles.selectionMenuButton}
-              onPress={handleUpdateSentence}
-            >
-              <Text style={dynamicStyles.selectionButtonText}>Update Last Card</Text>
+            <TouchableOpacity style={dynamicStyles.selectionMenuButton} onPress={() => { updateLastCardSentence(selectionMenu.text); hideSelectionMenu(); }}>
+              <Text style={dynamicStyles.selectionButtonText}>Update Card</Text>
             </TouchableOpacity>
           </View>
         )}
 
-
         <DictionaryPopup 
-          visible={popup.visible}
-          top={popup.top}
-          left={popup.left}
-          sentence={popup.sentence}
-          results={results}
-          loading={loading}
-          onClose={closePopup}
+          visible={popup.visible} top={popup.top} left={popup.left}
+          sentence={popup.sentence} results={results} loading={loading} onClose={closePopup}
         />
       </View>
     </View>
@@ -207,28 +227,14 @@ const styles = (theme: any) => StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
+    zIndex: 20,
   },
-  backButton: {
-    marginRight: theme.spacing.xs,
-  },
-  backButtonText: {
-    color: theme.colors.textMuted,
-    fontSize: 18,
-  },
-  navControls: {
-    flexDirection: 'row',
-    marginRight: theme.spacing.sm,
-  },
-  navButton: {
-    padding: 8,
-  },
-  navButtonText: {
-    fontSize: 20,
-    color: theme.colors.accent,
-  },
-  disabledButton: {
-    opacity: 0.3,
-  },
+  backButton: { marginRight: theme.spacing.xs },
+  backButtonText: { color: theme.colors.textMuted, fontSize: 18 },
+  navControls: { flexDirection: 'row', marginRight: theme.spacing.sm },
+  navButton: { padding: 8 },
+  navButtonText: { fontSize: 20, color: theme.colors.accent },
+  disabledButton: { opacity: 0.3 },
   urlDisplay: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -237,83 +243,44 @@ const styles = (theme: any) => StyleSheet.create({
     borderRadius: theme.radius.md,
     marginRight: theme.spacing.sm,
   },
-  urlText: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-  },
-  favButton: {
-    padding: 5,
-  },
-  favButtonText: {
-    fontSize: 22,
-    color: theme.colors.border,
-  },
-  favActive: {
-    color: theme.colors.star,
-  },
-  scannerToggle: {
-    padding: 5,
-    marginRight: 5,
-  },
-  scannerToggleText: {
-    fontSize: 20,
-  },
-  scannerDisabled: {
-    opacity: 0.5,
-  },
-  mainContent: { 
-    flex: 1, 
-    position: 'relative' 
-  },
-  progressBar: {
+  urlText: { fontSize: 12, color: theme.colors.textMuted },
+  headerActions: { flexDirection: 'row', alignItems: 'center' },
+  actionBtn: { padding: 6, borderRadius: 8, marginRight: 4 },
+  actionBtnActive: { backgroundColor: theme.colors.primary + '20' },
+  actionIcon: { fontSize: 16 },
+  favButton: { padding: 5 },
+  favButtonText: { fontSize: 22, color: theme.colors.border },
+  favActive: { color: theme.colors.star },
+  progressBar: { position: 'absolute', bottom: 0, left: 0, height: 3, backgroundColor: theme.colors.primary },
+  mainContent: { flex: 1, position: 'relative' },
+  
+  // TOOLS SHELF
+  toolsShelf: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    height: 3,
-    backgroundColor: theme.colors.primary,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: theme.colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  loadingText: {
-    marginTop: 15,
-    fontSize: 14,
-    color: theme.colors.textMuted,
-    fontWeight: '500',
-  },
-  selectionMenuContainer: {
-    position: 'absolute',
+    top: 0, left: 0, right: 0,
     backgroundColor: theme.colors.surface,
-    flexDirection: 'row',
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
-    elevation: 8,
+    padding: 15,
+    zIndex: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    zIndex: 1000,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  selectionMenuButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  selectionMenuDivider: {
-    width: 1,
-    backgroundColor: theme.colors.border,
-    marginVertical: 8,
-  },
-  selectionButtonText: {
-    color: theme.colors.primary,
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
+  shelfContent: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
+  toolGroup: { alignItems: 'center' },
+  toolLabel: { fontSize: 8, fontWeight: 'bold', color: theme.colors.textMuted, marginBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  shelfItem: { width: 36, height: 36, backgroundColor: theme.colors.background, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: theme.colors.border },
+  shelfItemActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
+  shelfItemText: { fontSize: 12, fontWeight: 'bold', color: theme.colors.text },
+  sizeValue: { fontSize: 10, fontWeight: 'bold', color: theme.colors.textMuted, width: 35, textAlign: 'center' },
+  vDivider: { width: 1, height: 30, backgroundColor: theme.colors.border },
+
+  selectionMenuContainer: { position: 'absolute', backgroundColor: theme.colors.surface, flexDirection: 'row', borderRadius: 25, borderWidth: 1, borderColor: theme.colors.primary, elevation: 8, zIndex: 1000, overflow: 'hidden' },
+  selectionMenuButton: { paddingHorizontal: 16, paddingVertical: 10, justifyContent: 'center', alignItems: 'center' },
+  selectionMenuDivider: { width: 1, backgroundColor: theme.colors.border, marginVertical: 8 },
+  selectionButtonText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 13 },
 });

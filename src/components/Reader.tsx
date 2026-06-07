@@ -15,6 +15,8 @@ export interface ReaderRef {
   goBack: () => void;
   goForward: () => void;
   reload: () => void;
+  setFontSize: (size: number) => void;
+  setFuriganaVisible: (visible: boolean) => void;
 }
 
 export const Reader = forwardRef<ReaderRef, ReaderProps>(({ 
@@ -30,6 +32,40 @@ export const Reader = forwardRef<ReaderRef, ReaderProps>(({
     goBack: () => webViewRef.current?.goBack(),
     goForward: () => webViewRef.current?.goForward(),
     reload: () => webViewRef.current?.reload(),
+    setFontSize: (size: number) => {
+        const js = `
+            (function() {
+                document.documentElement.style.webkitTextSizeAdjust = '${size}%';
+                document.body.style.webkitTextSizeAdjust = '${size}%';
+                const styleId = 'shiba-font-size-fix';
+                let style = document.getElementById(styleId);
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = styleId;
+                    document.head.appendChild(style);
+                }
+                style.innerHTML = 'html, body, p, div, span, article { -webkit-text-size-adjust: ${size}% !important; }';
+            })();
+            true;
+        `;
+        webViewRef.current?.injectJavaScript(js);
+    },
+    setFuriganaVisible: (visible: boolean) => {
+        const js = `
+            (function() {
+                const styleId = 'shiba-furigana-toggle';
+                let style = document.getElementById(styleId);
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = styleId;
+                    document.head.appendChild(style);
+                }
+                style.innerHTML = 'rt { display: ${visible ? 'block' : 'none'} !important; }';
+            })();
+            true;
+        `;
+        webViewRef.current?.injectJavaScript(js);
+    }
   }));
 
   useEffect(() => {
