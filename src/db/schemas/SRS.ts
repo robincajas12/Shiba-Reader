@@ -9,6 +9,7 @@ export type SRSEntry = {
     repetitions: number; // Aciertos consecutivos
     next_review: number; // Timestamp (ms)
     last_lookup: number; // Timestamp del último encuentro en el lector
+    last_review: number; // Timestamp del último repaso completado
     created_at: number;
 }
 
@@ -23,11 +24,13 @@ export const TableSRS: Table = {
         repetitions: { name: 'repetitions', type: 'INTEGER' },
         next_review: { name: 'next_review', type: 'INTEGER' },
         last_lookup: { name: 'last_lookup', type: 'INTEGER' },
+        last_review: { name: 'last_review', type: 'INTEGER' },
         created_at: { name: 'created_at', type: 'INTEGER' }
     },
     indexes: [
         { name: 'idx_srs_vocab', columns: ['vocab_id'] },
         { name: 'idx_srs_next', columns: ['next_review'] },
-        { name: 'idx_srs_lookup', columns: ['last_lookup'] }
+        { name: 'idx_srs_lookup', columns: ['last_lookup'] },
+        { name: 'idx_srs_review', columns: ['last_review'] }
     ]
 };

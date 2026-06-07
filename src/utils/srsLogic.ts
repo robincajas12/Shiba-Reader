@@ -53,7 +53,8 @@ export const calculateNextReview = (
     if (easeFactor < 1.3) easeFactor = 1.3;
 
     // Calcular próxima fecha (ms)
-    const nextReview = Date.now() + interval * 24 * 60 * 60 * 1000;
+    // Si falla (grade < 5), la próxima revisión es AHORA para que no desaparezca de la cola
+    const nextReview = grade < 5 ? Date.now() : Date.now() + interval * 24 * 60 * 60 * 1000;
 
     return {
         interval,

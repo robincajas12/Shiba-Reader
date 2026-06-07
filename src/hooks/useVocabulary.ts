@@ -67,6 +67,7 @@ export const useVocabulary = () => {
                     repetitions: 0,
                     next_review: Date.now(),
                     last_lookup: Date.now(),
+                    last_review: 0,
                     created_at: Date.now(),
                     id: 0
                 });

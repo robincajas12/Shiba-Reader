@@ -45,9 +45,10 @@ export const useSRS = () => {
     const processReview = useCallback(async (vocabId: number, grade: number) => {
         try {
             let srsEntry = await srsRepo.findByVocabId(vocabId);
+            let result;
 
             if (!srsEntry) {
-                const result = calculateNextReview(0, 2.5, 0, grade, 1);
+                result = calculateNextReview(0, 2.5, 0, grade, 1);
                 
                 await srsRepo.insert({
                     vocab_id: vocabId,
@@ -57,10 +58,11 @@ export const useSRS = () => {
                     repetitions: result.repetitions,
                     next_review: result.next_review,
                     last_lookup: Date.now(),
+                    last_review: grade === 5 ? Date.now() : 0,
                     created_at: Date.now()
                 } as SRSEntry);
             } else {
-                const result = calculateNextReview(
+                result = calculateNextReview(
                     srsEntry.interval,
                     srsEntry.ease_factor,
                     srsEntry.repetitions,
@@ -74,13 +76,14 @@ export const useSRS = () => {
                     result.ease_factor,
                     result.repetitions,
                     result.next_review,
-                    result.card_type
+                    result.card_type,
+                    grade
                 );
             }
-            return true;
+            return result;
         } catch (error) {
             console.error("Error processing SRS review:", error);
-            return false;
+            return null;
         }
     }, [srsRepo]);
 
