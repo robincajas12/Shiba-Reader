@@ -47,4 +47,46 @@ export class VocabularyRepository extends Repository<VocabularyEntry> {
         const result = await db.execute(query, [term]);
         return result.rows as VocabularyEntry[];
     }
+
+    async getAllWithSRS(limit: number = 20, offset: number = 0, search: string = '', sortMode: string = 'newest'): Promise<any[]> {
+        let orderClause = 'v.created_at DESC';
+        if (sortMode === 'oldest') orderClause = 'v.created_at ASC';
+        if (sortMode === 'alpha') orderClause = 'v.term COLLATE NOCASE ASC';
+
+        let whereClause = '';
+        const params: any[] = [];
+
+        if (search) {
+            whereClause = 'WHERE v.term LIKE ? OR v.reading LIKE ?';
+            params.push(`%${search}%`, `%${search}%`);
+        }
+
+        const query = `
+            SELECT v.*, s.interval, s.repetitions, s.next_review
+            FROM ${this.table.name} v
+            LEFT JOIN srs_queue s ON v.id = s.vocab_id
+            ${whereClause}
+            ORDER BY ${orderClause}
+            LIMIT ? OFFSET ?
+        `;
+        params.push(limit, offset);
+
+        const result = await db.execute(query, params);
+        return result.rows as any[];
+    }
+
+    async getTotalCount(search: string = ''): Promise<number> {
+        let whereClause = '';
+        const params: any[] = [];
+
+        if (search) {
+            whereClause = 'WHERE term LIKE ? OR reading LIKE ?';
+            params.push(`%${search}%`, `%${search}%`);
+        }
+
+        const query = `SELECT COUNT(*) as count FROM ${this.table.name} ${whereClause}`;
+        const result = await db.execute(query, params);
+        const rows = result.rows as any[];
+        return rows[0]?.count || 0;
+    }
 }

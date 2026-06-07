@@ -38,89 +38,89 @@ export const HomeScreen: React.FC = () => {
   const dynamicStyles = styles(theme);
 
   return (
-    <ScrollView style={dynamicStyles.container}>
+    <ScrollView style={dynamicStyles.container} showsVerticalScrollIndicator={false}>
       <View style={dynamicStyles.hero}>
-        <Text style={dynamicStyles.heroTitle}>Ringo Reader</Text>
-        <Text style={dynamicStyles.heroSubtitle}>Your gateway to Japanese reading</Text>
+        <View style={dynamicStyles.heroContent}>
+            <Text style={dynamicStyles.heroEmoji}>🐕</Text>
+            <View>
+                <Text style={dynamicStyles.heroTitle}>Shiba Reader</Text>
+                <Text style={dynamicStyles.heroSubtitle}>Master Japanese, one paw at a time</Text>
+            </View>
+        </View>
       </View>
 
       <View style={dynamicStyles.searchSection}>
-        <TextInput
-          style={dynamicStyles.input}
-          placeholder="Enter a URL"
-          placeholderTextColor={theme.colors.textMuted}
-          value={url}
-          onChangeText={setUrl}
-          autoCapitalize="none"
-          keyboardType="url"
-          onSubmitEditing={() => handleOpenUrl(url)}
-        />
-        <TouchableOpacity 
-          style={dynamicStyles.goButton}
-          onPress={() => handleOpenUrl(url)}
-        >
-          <Text style={dynamicStyles.goButtonText}>Go</Text>
-        </TouchableOpacity>
+        <View style={dynamicStyles.inputWrapper}>
+            <TextInput
+            style={dynamicStyles.input}
+            placeholder="Search or enter URL..."
+            placeholderTextColor={theme.colors.textMuted}
+            value={url}
+            onChangeText={setUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+            onSubmitEditing={() => handleOpenUrl(url)}
+            />
+            <TouchableOpacity 
+            style={dynamicStyles.goButton}
+            onPress={() => handleOpenUrl(url)}
+            >
+            <Text style={dynamicStyles.goButtonText}>GO</Text>
+            </TouchableOpacity>
+        </View>
       </View>
 
       {/* SRS Status Section */}
       <View style={dynamicStyles.section}>
-        <Text style={dynamicStyles.sectionTitle}>Daily Review</Text>
-        <TouchableOpacity 
-          style={dynamicStyles.srsCard}
-          onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'normal' } })}
-        >
-          <View style={dynamicStyles.srsInfo}>
-            <Text style={dynamicStyles.srsEmoji}>🧠</Text>
-            <View>
-              <Text style={dynamicStyles.srsTitle}>Daily Review</Text>
-              <Text style={dynamicStyles.srsSubtitle}>
-                {pendingCount > 0 
-                  ? `You have ${pendingCount} words to review` 
-                  : 'You are all caught up!'}
-              </Text>
-            </View>
-          </View>
-          {pendingCount > 0 && (
-            <View style={dynamicStyles.srsBadge}>
-              <Text style={dynamicStyles.srsBadgeText}>{pendingCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <Text style={dynamicStyles.sectionTitle}>Training Center</Text>
+        <View style={dynamicStyles.srsGrid}>
+            <TouchableOpacity 
+            style={dynamicStyles.srsCardLarge}
+            onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'normal' } })}
+            >
+                <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.primary + '20' }]}>
+                    <Text style={dynamicStyles.srsEmoji}>🧠</Text>
+                </View>
+                <Text style={dynamicStyles.srsCardTitle}>Daily Review</Text>
+                <View style={dynamicStyles.srsStatusRow}>
+                    <Text style={dynamicStyles.srsStatusText}>
+                        {pendingCount > 0 ? `${pendingCount} due` : 'Finished'}
+                    </Text>
+                    {pendingCount > 0 && <View style={dynamicStyles.dot} />}
+                </View>
+            </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[dynamicStyles.srsCard, { marginTop: theme.spacing.md }]}
-          onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'queue' } })}
-        >
-          <View style={dynamicStyles.srsInfo}>
-            <Text style={dynamicStyles.srsEmoji}>⚡</Text>
-            <View>
-              <Text style={dynamicStyles.srsTitle}>Mining Queue</Text>
-              <Text style={dynamicStyles.srsSubtitle}>
-                Prioritize words by recent interactions
-              </Text>
-            </View>
-          </View>
-          <Text style={dynamicStyles.arrow}>›</Text>
-        </TouchableOpacity>
+            <TouchableOpacity 
+            style={dynamicStyles.srsCardLarge}
+            onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'queue' } })}
+            >
+                <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.accent + '20' }]}>
+                    <Text style={dynamicStyles.srsEmoji}>⚡</Text>
+                </View>
+                <Text style={dynamicStyles.srsCardTitle}>Mining Queue</Text>
+                <Text style={dynamicStyles.srsStatusText}>Prioritize</Text>
+            </TouchableOpacity>
+        </View>
       </View>
 
       <View style={dynamicStyles.section}>
         <View style={dynamicStyles.sectionHeader}>
-          <Text style={dynamicStyles.sectionTitle}>Bookmarks</Text>
-          <TouchableOpacity onPress={refreshBrowserData}>
-            <Text style={dynamicStyles.refreshEmoji}>🔄</Text>
+          <Text style={dynamicStyles.sectionTitle}>Library</Text>
+          <TouchableOpacity onPress={refreshBrowserData} style={dynamicStyles.iconButton}>
+            <Text style={dynamicStyles.iconButtonEmoji}>🔄</Text>
           </TouchableOpacity>
         </View>
-        <View style={dynamicStyles.bookmarksGrid}>
-          {bookmarks.map((item) => (
-            <View key={item.id} style={dynamicStyles.bookmarkWrapper}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={dynamicStyles.bookmarksScroll}>
+          {bookmarks.length > 0 ? bookmarks.map((item) => (
+            <View key={item.id} style={dynamicStyles.bookmarkContainer}>
               <TouchableOpacity 
                 style={dynamicStyles.bookmarkCard}
                 onPress={() => handleOpenUrl(item.url)}
               >
-                <Text style={dynamicStyles.bookmarkEmoji}>🌐</Text>
-                <Text style={dynamicStyles.bookmarkTitle} numberOfLines={2}>{item.title}</Text>
+                <View style={dynamicStyles.bookmarkFavicon}>
+                    <Text style={dynamicStyles.bookmarkEmoji}>📖</Text>
+                </View>
+                <Text style={dynamicStyles.bookmarkTitle} numberOfLines={1}>{item.title}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={dynamicStyles.removeBookmarkBtn}
@@ -129,34 +129,40 @@ export const HomeScreen: React.FC = () => {
                 <Text style={dynamicStyles.removeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>
-          ))}
-        </View>
+          )) : (
+            <Text style={dynamicStyles.emptyHint}>No bookmarks yet</Text>
+          )}
+        </ScrollView>
       </View>
 
       <View style={dynamicStyles.section}>
         <View style={dynamicStyles.sectionHeader}>
-          <Text style={dynamicStyles.sectionTitle}>Recent</Text>
+          <Text style={dynamicStyles.sectionTitle}>Recent Journeys</Text>
           {history.length > 0 && (
             <TouchableOpacity onPress={clearHistory}>
-              <Text style={dynamicStyles.clearAllText}>Clear all</Text>
+              <Text style={dynamicStyles.clearAllText}>Reset history</Text>
             </TouchableOpacity>
           )}
         </View>
         
-        {history.length > 0 ? (
-          history.map((item) => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={dynamicStyles.historyItem}
-              onPress={() => handleOpenUrl(item.url)}
-            >
-              <Text style={dynamicStyles.historyUrl} numberOfLines={1}>{item.url}</Text>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Text style={dynamicStyles.emptyText}>No recent history</Text>
-        )}
+        <View style={dynamicStyles.historyCard}>
+            {history.length > 0 ? (
+            history.slice(0, 5).map((item, idx) => (
+                <TouchableOpacity 
+                key={item.id} 
+                style={[dynamicStyles.historyItem, idx === history.slice(0, 5).length - 1 && { borderBottomWidth: 0 }]}
+                onPress={() => handleOpenUrl(item.url)}
+                >
+                <Text style={dynamicStyles.historyUrl} numberOfLines={1}>{item.url}</Text>
+                <Text style={dynamicStyles.arrow}>›</Text>
+                </TouchableOpacity>
+            ))
+            ) : (
+            <Text style={dynamicStyles.emptyText}>History is clear</Text>
+            )}
+        </View>
       </View>
+      <View style={{ height: 40 }} />
     </ScrollView>
   );
 };
@@ -167,184 +173,243 @@ const styles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   hero: {
-    padding: theme.spacing.xl,
+    paddingTop: 40,
+    paddingBottom: 25,
+    paddingHorizontal: theme.spacing.lg,
     backgroundColor: theme.colors.surface,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  heroContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+  },
+  heroEmoji: {
+    fontSize: 50,
+    marginRight: 15,
   },
   heroTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: theme.colors.header,
     fontFamily: theme.fonts.serif,
+    letterSpacing: -0.5,
   },
   heroSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.textMuted,
-    marginTop: theme.spacing.xs,
+    marginTop: 2,
+    fontWeight: '500',
   },
   searchSection: {
-    padding: theme.spacing.lg,
+    marginTop: -25,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  inputWrapper: {
     flexDirection: 'row',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
+    height: 60,
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   input: {
     flex: 1,
-    height: 50,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.md,
-    paddingHorizontal: theme.spacing.md,
     fontSize: 16,
-    backgroundColor: theme.colors.surface,
     color: theme.colors.text,
     fontFamily: theme.fonts.serif,
   },
   goButton: {
-    width: 60,
-    marginLeft: theme.spacing.sm,
     backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
+    paddingHorizontal: 20,
+    height: 40,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
   },
   goButtonText: {
-    color: theme.colors.background,
-    fontWeight: 'bold',
-    fontSize: 16,
+    color: theme.colors.onPrimary,
+    fontWeight: '900',
+    fontSize: 14,
   },
   section: {
-    padding: theme.spacing.lg,
+    marginTop: 30,
+    paddingHorizontal: theme.spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: theme.spacing.md,
+    marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: theme.colors.header,
     fontFamily: theme.fonts.serif,
   },
-  refreshEmoji: {
-    fontSize: 16,
-  },
-  clearAllText: {
-    color: theme.colors.accent,
-    fontSize: 13,
-  },
-  bookmarksGrid: {
+  srsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    marginTop: theme.spacing.xs,
+    justifyContent: 'space-between',
   },
-  bookmarkWrapper: {
-    width: '30%',
-    marginRight: '3%',
-    marginBottom: theme.spacing.md,
+  srsCardLarge: {
+    width: '48%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 25,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  srsIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  srsEmoji: {
+    fontSize: 28,
+  },
+  srsCardTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: theme.colors.header,
+    marginBottom: 5,
+  },
+  srsStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  srsStatusText: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: '600',
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.accent,
+    marginLeft: 6,
+  },
+  bookmarksScroll: {
+    paddingRight: 20,
+  },
+  bookmarkContainer: {
+    width: 140,
+    marginRight: 15,
     position: 'relative',
   },
   bookmarkCard: {
-    backgroundColor: theme.colors.card,
-    padding: theme.spacing.sm,
-    borderRadius: theme.radius.lg,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
+    padding: 15,
     alignItems: 'center',
-    height: 90,
-    justifyContent: 'center',
-    width: '100%',
     borderWidth: 1,
     borderColor: theme.colors.border,
+    height: 100,
+    justifyContent: 'center',
+  },
+  bookmarkFavicon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  bookmarkEmoji: {
+    fontSize: 20,
+  },
+  bookmarkTitle: {
+    fontSize: 12,
+    color: theme.colors.text,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   removeBookmarkBtn: {
     position: 'absolute',
     top: -5,
     right: -5,
     backgroundColor: theme.colors.error,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
+    borderWidth: 2,
+    borderColor: theme.colors.background,
   },
   removeBtnText: {
-    color: theme.colors.white,
+    color: '#fff',
     fontSize: 10,
     fontWeight: 'bold',
   },
-  bookmarkEmoji: {
-    fontSize: 24,
-    marginBottom: theme.spacing.xs,
-  },
-  bookmarkTitle: {
-    fontSize: 11,
-    textAlign: 'center',
-    color: theme.colors.text,
-    fontWeight: '500',
-  },
-  emptyText: {
-    color: theme.colors.border,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
+  historyCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 25,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.card,
+    borderBottomColor: theme.colors.border + '40',
+  },
+  historyIcon: {
+    fontSize: 16,
+    marginRight: 12,
   },
   historyUrl: {
     fontSize: 14,
-    color: theme.colors.textMuted,
+    color: theme.colors.text,
     flex: 1,
+    fontWeight: '500',
   },
-  srsCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginTop: theme.spacing.xs,
-  },
-  srsInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  srsEmoji: {
-    fontSize: 32,
-    marginRight: theme.spacing.lg,
-  },
-  srsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: theme.colors.header,
-  },
-  srsSubtitle: {
-    fontSize: 13,
+  arrow: {
+    fontSize: 20,
     color: theme.colors.textMuted,
-    marginTop: 2,
+    marginLeft: 10,
   },
-  srsBadge: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 15,
+  clearAllText: {
+    color: theme.colors.accent,
+    fontSize: 13,
+    fontWeight: '700',
   },
-  srsBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+  emptyText: {
+    padding: 20,
+    textAlign: 'center',
+    color: theme.colors.textMuted,
+    fontStyle: 'italic',
+  },
+  emptyHint: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+    fontStyle: 'italic',
+    paddingLeft: 5,
+  },
+  iconButton: {
+    padding: 5,
+  },
+  iconButtonEmoji: {
+    fontSize: 18,
   }
 });

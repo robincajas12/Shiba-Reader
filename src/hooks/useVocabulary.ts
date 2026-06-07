@@ -3,30 +3,37 @@ import { dbEngine } from '../db/engine';
 import { VocabularyEntry } from '../db/schemas/Vocabulary';
 
 export const useVocabulary = () => {
-    const [vocabulary, setVocabulary] = useState<VocabularyEntry[]>([]);
+    const [vocabulary, setVocabulary] = useState<any[]>([]);
     const [todayCount, setTodayCount] = useState(0);
-    const [dailyGoal, setDailyGoal] = useState(10); // Default goal
+    const [totalCount, setTotalCount] = useState(0);
+    const [dailyGoal, setDailyGoal] = useState(10);
     const vocabRepo = dbEngine.getRepository('VocabularyRepository');
     const settingsRepo = dbEngine.getRepository('SettingsRepository');
 
-    const loadVocabulary = useCallback(async () => {
+    const loadVocabulary = useCallback(async (limit: number = 20, offset: number = 0, search: string = '', sortMode: string = 'newest') => {
         try {
-            const [data, count, goalStr] = await Promise.all([
-                vocabRepo.getAllOrdered(),
+            const [data, count, total, goalStr] = await Promise.all([
+                vocabRepo.getAllWithSRS(limit, offset, search, sortMode),
                 vocabRepo.getTodayCount(),
+                vocabRepo.getTotalCount(search),
                 settingsRepo.get('daily_goal', '10')
             ]);
-            setVocabulary(data);
+            
+            if (offset === 0) {
+                setVocabulary(data);
+            } else {
+                setVocabulary(prev => [...prev, ...data]);
+            }
+
             setTodayCount(count);
+            setTotalCount(total);
             setDailyGoal(parseInt(goalStr, 10));
+            return data;
         } catch (error) {
             console.error("Error loading vocabulary:", error);
+            return [];
         }
     }, [vocabRepo, settingsRepo]);
-
-    useEffect(() => {
-        loadVocabulary();
-    }, [loadVocabulary]);
 
     const updateDailyGoal = useCallback(async (newGoal: number) => {
         try {
@@ -39,29 +46,17 @@ export const useVocabulary = () => {
 
     const addVocabulary = useCallback(async (term: string, reading: string, definition: string, sentence: string) => {
         try {
-            // Permitimos duplicados del término siempre que la oración sea distinta
             const existing = await vocabRepo.findDuplicate(term, reading, sentence);
-            if (existing) {
-                console.log("This word/sentence combination already exists");
-                return false;
-            }
+            if (existing) return false;
 
-            const vocabEntry = {
-                term,
-                reading,
-                definition,
-                sentence,
-                created_at: Date.now()
-            } as VocabularyEntry;
-
+            const vocabEntry = { term, reading, definition, sentence, created_at: Date.now() } as VocabularyEntry;
             await vocabRepo.insert(vocabEntry);
             
-            // Creamos automáticamente la entrada en el SRS para que aparezca en la cola
             if (vocabEntry.id) {
                 const srsRepo = dbEngine.getRepository('SRSRepository');
                 await srsRepo.insert({
                     vocab_id: vocabEntry.id,
-                    card_type: 1, // Normal by default
+                    card_type: 1,
                     interval: 0,
                     ease_factor: 2.5,
                     repetitions: 0,
@@ -84,31 +79,22 @@ export const useVocabulary = () => {
     const removeVocabulary = useCallback(async (id: number) => {
         try {
             await vocabRepo.delete(id);
-            await loadVocabulary();
+            // No recargamos todo, solo filtramos el estado para suavidad
+            setVocabulary(prev => prev.filter(v => v.id !== id));
+            setTotalCount(prev => prev - 1);
         } catch (error) {
             console.error("Error removing vocabulary:", error);
         }
-    }, [vocabRepo, loadVocabulary]);
-
-    const updateLastCardSentence = useCallback(async (newSentence: string) => {
-        try {
-            await vocabRepo.updateLatestSentence(newSentence);
-            await loadVocabulary();
-            return true;
-        } catch (error) {
-            console.error("Error updating latest sentence:", error);
-            return false;
-        }
-    }, [vocabRepo, loadVocabulary]);
+    }, [vocabRepo]);
 
     return {
         vocabulary,
         todayCount,
+        totalCount,
         dailyGoal,
         setDailyGoal: updateDailyGoal,
         addVocabulary,
         removeVocabulary,
-        updateLastCardSentence,
         refreshVocabulary: loadVocabulary
     };
 };
