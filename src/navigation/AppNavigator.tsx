@@ -10,6 +10,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
 import { MoreScreen } from '../screens/MoreScreen';
 import { SRSReviewScreen } from '../screens/SRSReviewScreen';
+import { LegalScreen } from '../screens/LegalScreen';
 import { useTheme } from '../ThemeContext';
 
 export type RootTabParamList = {
@@ -24,6 +25,7 @@ export type MoreStackParamList = {
   Search: undefined;
   Settings: undefined;
   SRSReview: { mode: 'normal' | 'queue' };
+  Legal: undefined;
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -66,6 +68,11 @@ const MoreNavigator = () => {
           title: route.params?.mode === 'queue' ? 'Mining Queue' : 'Daily Review', 
           headerShown: false 
         })} 
+      />
+      <Stack.Screen 
+        name="Legal" 
+        component={LegalScreen} 
+        options={{ title: 'Legal & Credits', headerShown: false }} 
       />
     </Stack.Navigator>
   );

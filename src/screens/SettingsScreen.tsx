@@ -139,7 +139,7 @@ export const SettingsScreen: React.FC = () => {
         <Text style={dynamicStyles.groupLabel}>Información</Text>
         <View style={dynamicStyles.card}>
           <View style={[dynamicStyles.settingItem, dynamicStyles.noBorder]}>
-            <Text style={dynamicStyles.infoText}>Ringo Reader v0.1.0</Text>
+            <Text style={dynamicStyles.infoText}>Shiba Reader v0.2.0</Text>
             <Text style={dynamicStyles.infoText}>Desarrollado para lectores de japonés.</Text>
           </View>
         </View>

@@ -33,6 +33,12 @@ export const MoreScreen: React.FC = () => {
       description: 'Configuration, themes, and dictionary management.',
       onPress: () => navigation.navigate('Settings'),
     },
+    {
+      title: 'Legal & Credits',
+      icon: '⚖️',
+      description: 'Dictionary licenses and original source credits.',
+      onPress: () => navigation.navigate('Legal'),
+    },
   ];
 
   return (
@@ -57,7 +63,7 @@ export const MoreScreen: React.FC = () => {
       </View>
       
       <View style={dynamicStyles.footer}>
-        <Text style={dynamicStyles.footerText}>Ringo Reader v0.1.0</Text>
+        <Text style={dynamicStyles.footerText}>Shiba Reader v0.2.0</Text>
       </View>
     </ScrollView>
   );

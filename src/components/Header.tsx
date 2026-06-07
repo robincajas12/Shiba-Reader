@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ loadingSeeding, onSeed, onVerify
   return (
     <View style={dynamicStyles.header}>
       <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-        <Text style={dynamicStyles.title}>Jitendex Kindle Reader</Text>
+        <Text style={dynamicStyles.title}>Shiba Reader 🐕</Text>
       </TouchableOpacity>
       
       <View style={dynamicStyles.headerButtons}>

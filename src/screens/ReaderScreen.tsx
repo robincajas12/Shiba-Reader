@@ -53,17 +53,25 @@ export const ReaderScreen: React.FC = () => {
     }).start();
   }, [showTools]);
 
-  // Sync tools with WebView
+  // Función para reaplicar herramientas (útil en carga de página)
+  const applyTools = useCallback(() => {
+    // Usamos un pequeño timeout para asegurar que el DOM esté listo en sitios pesados
+    setTimeout(() => {
+        if (readerRef.current) {
+            if (typeof readerRef.current.setFontSize === 'function') {
+                readerRef.current.setFontSize(fontSize);
+            }
+            if (typeof readerRef.current.setFuriganaVisible === 'function') {
+                readerRef.current.setFuriganaVisible(furiganaVisible);
+            }
+        }
+    }, 500);
+  }, [fontSize, furiganaVisible]);
+
+  // Sync tools when settings change
   useEffect(() => {
-    if (readerRef.current) {
-        if (typeof readerRef.current.setFontSize === 'function') {
-            readerRef.current.setFontSize(fontSize);
-        }
-        if (typeof readerRef.current.setFuriganaVisible === 'function') {
-            readerRef.current.setFuriganaVisible(furiganaVisible);
-        }
-    }
-  }, [fontSize, furiganaVisible]); // Eliminamos isLoading de la dependencia y del guard
+    applyTools();
+  }, [applyTools]);
 
   const toggleBookmark = async () => {
     if (isFav) {
@@ -193,6 +201,7 @@ export const ReaderScreen: React.FC = () => {
           }}
           onNavigationStateChange={handleNavigationStateChange}
           onLoadProgress={(e: any) => setProgress(e.nativeEvent.progress)}
+          onLoadEnd={applyTools}
           isScannerEnabled={isScannerEnabled}
         />
 
