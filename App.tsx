@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet, ImageBackground } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -33,10 +33,19 @@ const App: React.FC = () => {
 
   if (!isReady) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>{loadingMessage}</Text>
-      </View>
+      <ImageBackground 
+        source={require('./shiba_reading_book.png')} 
+        style={styles.loadingBackground}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        
+        <ActivityIndicator size="large" color="#FFCC00" />
+        
+        <View style={styles.textContainer}>
+          <Text style={styles.loadingText}>{loadingMessage}</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
@@ -52,16 +61,32 @@ const App: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  loadingBackground: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10, 5, 25, 0.55)', // Ajustado para ver mejor el arte de fondo
+  },
+  textContainer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
   },
   loadingText: {
-    marginTop: 20,
     fontSize: 16,
-    color: '#333',
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
 

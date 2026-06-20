@@ -48,7 +48,14 @@ export const MoreScreen: React.FC = () => {
       {/* BOTÓN PREMIUM DESTACADO (CTA A LA PANTALLA DE COMPRA) */}
       {isAdFree ? (
         <View style={dynamicStyles.adFreeBanner}>
-          <Text style={dynamicStyles.adFreeBannerText}>✨ Shiba Reader Pro · Versión sin anuncios activa</Text>
+          <View style={dynamicStyles.adFreeIconContainer}>
+            <Text style={dynamicStyles.adFreeIcon}>👑</Text>
+          </View>
+          <View style={dynamicStyles.adFreeTextContainer}>
+            <Text style={dynamicStyles.adFreeTag}>SHIBA PRO MEMBER</Text>
+            <Text style={dynamicStyles.adFreeTitle}>Ad-Free Version Active</Text>
+            <Text style={dynamicStyles.adFreeSubtitle}>Thank you for supporting this independent project! ❤️</Text>
+          </View>
         </View>
       ) : (
         <TouchableOpacity 
@@ -60,12 +67,12 @@ export const MoreScreen: React.FC = () => {
             <View style={dynamicStyles.promoBadge}>
               <Text style={dynamicStyles.promoBadgeText}>PREMIUM</Text>
             </View>
-            <Text style={dynamicStyles.premiumTitle}>Desbloquear Shiba Pro 👑</Text>
+            <Text style={dynamicStyles.premiumTitle}>Unlock Shiba Pro 👑</Text>
           </View>
           <Text style={dynamicStyles.premiumDescription}>
-            Quita la publicidad para siempre, acelera las lecturas y apoya el proyecto.
+            Remove ads forever, speed up reading, and support independent development.
           </Text>
-          <Text style={dynamicStyles.premiumArrow}>Conocer más ›</Text>
+          <Text style={dynamicStyles.premiumArrow}>Learn more ›</Text>
         </TouchableOpacity>
       )}
 
@@ -125,23 +132,52 @@ const styles = (theme: any) => StyleSheet.create({
   adFreeBanner: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.xl,
-    padding: theme.spacing.lg,
+    padding: 20,
     marginBottom: theme.spacing.xl,
-    borderLeftWidth: 4,
-    borderColor: theme.colors.success,
-    shadowColor: theme.colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    borderWidth: 1.5,
+    borderColor: theme.colors.star, // Borde dorado
+    shadowColor: theme.colors.star, // Sombra dorada
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  adFreeIconContainer: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: theme.colors.star + '15', // Opacidad dorada del 8%
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.star + '40',
   },
-  adFreeBannerText: {
-    color: theme.colors.success,
-    fontSize: 14,
+  adFreeIcon: {
+    fontSize: 22,
+  },
+  adFreeTextContainer: {
+    flex: 1,
+  },
+  adFreeTag: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: theme.colors.star, // Dorado brillante
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  adFreeTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: theme.colors.header,
+    marginBottom: 2,
+  },
+  adFreeSubtitle: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    lineHeight: 16,
   },
   premiumHeader: {
     flexDirection: 'row',

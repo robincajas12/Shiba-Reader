@@ -1,349 +1,307 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  ImageBackground,
+} from 'react-native';
 import { useTheme } from '../ThemeContext';
 import { useSettings } from '../hooks/useSettings';
 import { useBilling } from '../hooks/useBilling';
-
-const { width } = Dimensions.get('window');
+import { useNavigation } from '@react-navigation/native';
 
 export const PremiumScreen: React.FC = () => {
   const { theme } = useTheme();
   const { isAdFree, setIsAdFree } = useSettings();
-  const { buyRemoveAds, restorePurchases, isPurchasing } = useBilling(isAdFree, setIsAdFree);
+  const { buyRemoveAds, restorePurchases, isPurchasing } =
+    useBilling(isAdFree, setIsAdFree);
 
-  const dynamicStyles = styles(theme);
+  const navigation = useNavigation();
+  const styles = createStyles(theme);
+
+  const handleRestore = async () => {
+    const restored = await restorePurchases();
+    Alert.alert(
+      restored ? 'Success' : 'Notice',
+      restored ? 'Purchase restored.' : 'No purchases found.'
+    );
+  };
 
   return (
-    <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.contentContainer}>
-      {/* HEADER DE BIENVENIDA */}
-      <View style={dynamicStyles.headerSection}>
-        <Text style={dynamicStyles.logoEmoji}>🐕✨</Text>
-        <Text style={dynamicStyles.title}>Shiba Reader Pro</Text>
-        <Text style={dynamicStyles.subtitle}>La mejor experiencia para leer japonés en móvil</Text>
-      </View>
+    <ImageBackground
+      source={require('../../shiba_reading_book.png')}
+      style={styles.bg}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
 
-      {/* ESTADO SI YA ES PREMIUM */}
-      {isAdFree ? (
-        <View style={dynamicStyles.celebrationCard}>
-          <Text style={dynamicStyles.celebrationEmoji}>🎉</Text>
-          <Text style={dynamicStyles.celebrationTitle}>¡Ya eres miembro Pro!</Text>
-          <Text style={dynamicStyles.celebrationText}>
-            Muchísimas gracias por apoyar el desarrollo de Shiba Reader. Disfrutas de la versión completa libre de publicidad y con el mejor rendimiento disponible.
-          </Text>
-          
-          <TouchableOpacity 
-            style={dynamicStyles.restoreButton}
-            onPress={async () => {
-              const restored = await restorePurchases();
-              Alert.alert(
-                restored ? '¡Excelente!' : 'Aviso',
-                restored ? '¡Compra restaurada con éxito!' : 'No se encontraron compras anteriores para esta cuenta.'
-              );
-            }}
-          >
-            <Text style={dynamicStyles.restoreButtonText}>Restaurar Compra (Sincronizar)</Text>
-          </TouchableOpacity>
+      {/* Close */}
+      <TouchableOpacity style={styles.close} onPress={() => navigation.goBack()}>
+        <Text style={styles.closeText}>✕</Text>
+      </TouchableOpacity>
+
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Text style={styles.emoji}>🐕👑</Text>
+          <Text style={styles.title}>Shiba Reader Pro</Text>
+          <Text style={styles.subtitle}>Clean reading, no distractions</Text>
         </View>
-      ) : (
-        <View style={dynamicStyles.offerContainer}>
-          {/* BENEFICIOS DESTACADOS */}
-          <Text style={dynamicStyles.sectionHeading}>¿Por qué pasarse a Pro?</Text>
-          
-          <View style={dynamicStyles.benefitCard}>
-            <View style={dynamicStyles.benefitItem}>
-              <View style={[dynamicStyles.iconContainer, { backgroundColor: theme.colors.error + '1A' }]}>
-                <Text style={[dynamicStyles.benefitIcon, { color: theme.colors.error }]}>🚫</Text>
-              </View>
-              <View style={dynamicStyles.benefitTextContent}>
-                <Text style={dynamicStyles.benefitTitle}>Lectura sin publicidad</Text>
-                <Text style={dynamicStyles.benefitDescription}>
-                  Elimina todos los anuncios de banner. Concéntrate por completo en tus textos, manga y diccionarios sin distracciones visuales.
-                </Text>
-              </View>
-            </View>
 
-            <View style={dynamicStyles.benefitItem}>
-              <View style={[dynamicStyles.iconContainer, { backgroundColor: theme.colors.accent + '1A' }]}>
-                <Text style={[dynamicStyles.benefitIcon, { color: theme.colors.accent }]}>⚡</Text>
-              </View>
-              <View style={dynamicStyles.benefitTextContent}>
-                <Text style={dynamicStyles.benefitTitle}>Carga Ultra Rápida</Text>
-                <Text style={dynamicStyles.benefitDescription}>
-                  Al remover scripts externos de anuncios de Google, las páginas del navegador integrado se cargan hasta un 40% más rápido.
-                </Text>
-              </View>
-            </View>
+        {isAdFree ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>You are Pro</Text>
+            <Text style={styles.cardText}>
+              You already unlocked the ad-free experience.
+            </Text>
 
-            <View style={dynamicStyles.benefitItem}>
-              <View style={[dynamicStyles.iconContainer, { backgroundColor: '#4FD1C51A' }]}>
-                <Text style={[dynamicStyles.benefitIcon, { color: '#4FD1C5' }]}>🔋</Text>
-              </View>
-              <View style={dynamicStyles.benefitTextContent}>
-                <Text style={dynamicStyles.benefitTitle}>Menor Consumo de Recursos</Text>
-                <Text style={dynamicStyles.benefitDescription}>
-                  Ahorra datos móviles y extiende la vida de tu batería al bloquear las conexiones continuas de servidores de publicidad.
-                </Text>
-              </View>
-            </View>
-
-            <View style={dynamicStyles.benefitItem}>
-              <View style={[dynamicStyles.iconContainer, { backgroundColor: theme.colors.star + '1A' }]}>
-                <Text style={[dynamicStyles.benefitIcon, { color: theme.colors.star }]}>💖</Text>
-              </View>
-              <View style={dynamicStyles.benefitTextContent}>
-                <Text style={dynamicStyles.benefitTitle}>Apoya al Creador</Text>
-                <Text style={dynamicStyles.benefitDescription}>
-                  Shiba Reader es un proyecto independiente. Tu compra financia directamente la incorporación de nuevas herramientas para aprender japonés.
-                </Text>
-              </View>
-            </View>
+            <TouchableOpacity style={styles.secondaryBtn} onPress={handleRestore}>
+              <Text style={styles.secondaryBtnText}>Restore purchases</Text>
+            </TouchableOpacity>
           </View>
+        ) : (
+          <>
+            {/* VALUE BLOCK */}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Why upgrade?</Text>
 
-          {/* CAJA DE PRECIO Y COMPRA */}
-          <View style={dynamicStyles.pricingCard}>
-            <Text style={dynamicStyles.pricingHeader}>ACCESO ILIMITADO</Text>
-            <View style={dynamicStyles.pricingRow}>
-              <Text style={dynamicStyles.priceStrike}>$4.99</Text>
-              <Text style={dynamicStyles.priceActive}>$1.99 USD</Text>
-            </View>
-            <Text style={dynamicStyles.pricingSubText}>Pago único para siempre · Sin suscripciones</Text>
+              <View style={styles.list}>
+                <Text style={styles.item}>✔ No ads</Text>
+                <Text style={styles.item}>✔ Supports development</Text>
+                <Text style={styles.item}>✔ Unlock all themes</Text>
 
-            {isPurchasing ? (
-              <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginVertical: 12 }} />
-            ) : (
-              <View style={dynamicStyles.actionGroup}>
-                <TouchableOpacity 
-                  style={dynamicStyles.buyButton}
-                  onPress={buyRemoveAds}
-                  activeOpacity={0.85}
-                >
-                  <Text style={dynamicStyles.buyButtonText}>Desbloquear Shiba Pro</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={dynamicStyles.restoreButton}
-                  onPress={async () => {
-                    const restored = await restorePurchases();
-                    Alert.alert(
-                      restored ? '¡Excelente!' : 'Aviso',
-                      restored ? '¡Compra restaurada con éxito!' : 'No se encontraron compras anteriores para esta cuenta.'
-                    );
-                  }}
-                >
-                  <Text style={dynamicStyles.restoreButtonText}>Restaurar Compra Anterior</Text>
-                </TouchableOpacity>
               </View>
-            )}
-          </View>
-        </View>
-      )}
+              <View style={styles.quoteBox}>
+                <Text style={styles.quote}>
+                  “Reading Japanese without interruptions feels completely different.”
+                </Text>
+                <Text style={styles.quoteAuthor}>— Shiba CTO 🐕</Text>
+              </View>
+            </View>
 
-      {/* INFO EXTRA / SEGURIDAD */}
-      <View style={dynamicStyles.safetyNotice}>
-        <Text style={dynamicStyles.safetyText}>🛡️ Compra segura procesada a través de Google Play Store / App Store.</Text>
-        <Text style={dynamicStyles.safetyText}>🔄 Tu licencia queda vinculada permanentemente a tu cuenta de Google o Apple.</Text>
-      </View>
-    </ScrollView>
+            {/* PRICE CARD */}
+            <View style={styles.priceCard}>
+              <Text style={styles.priceLabel}>ONE-TIME PURCHASE</Text>
+
+              <View style={styles.priceRow}>
+                {/*<Text style={styles.strike}>$4.99</Text>*/}
+                <Text style={styles.price}>$1.99</Text>
+                <Text style={styles.currency}>USD</Text>
+              </View>
+
+              <Text style={styles.small}>Lifetime access • No subscription</Text>
+
+              {isPurchasing ? (
+                <ActivityIndicator size="large" color={theme.colors.star} />
+              ) : (
+                <TouchableOpacity style={styles.cta} onPress={buyRemoveAds}>
+                  <Text style={styles.ctaText}>Unlock Pro</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity onPress={handleRestore}>
+                <Text style={styles.restore}>Restore purchase</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.secure}>🔒 Secure payment via store</Text>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
-const styles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  contentContainer: {
-    padding: theme.spacing.lg,
-    paddingBottom: 50,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginTop: 15,
-    marginBottom: 25,
-  },
-  logoEmoji: {
-    fontSize: 50,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: theme.colors.header,
-    fontFamily: theme.fonts.serif,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: theme.colors.textMuted,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  celebrationCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.xl,
-    padding: 24,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.success,
-    elevation: 3,
-    shadowColor: theme.colors.success,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    marginVertical: 10,
-  },
-  celebrationEmoji: {
-    fontSize: 48,
-    marginBottom: 10,
-  },
-  celebrationTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: theme.colors.header,
-    marginBottom: 12,
-  },
-  celebrationText: {
-    fontSize: 14,
-    color: theme.colors.text,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  offerContainer: {
-    width: '100%',
-  },
-  sectionHeading: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-  benefitCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.xl,
-    padding: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    gap: 20,
-    marginBottom: 25,
-    elevation: 2,
-    shadowColor: theme.colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  benefitItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 15,
-  },
-  iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  benefitIcon: {
-    fontSize: 18,
-  },
-  benefitTextContent: {
-    flex: 1,
-  },
-  benefitTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    marginBottom: 2,
-  },
-  benefitDescription: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    lineHeight: 17,
-  },
-  pricingCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.xl,
-    padding: 24,
-    borderWidth: 2,
-    borderColor: theme.colors.accent,
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: theme.colors.accent,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    marginBottom: 25,
-  },
-  pricingHeader: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: theme.colors.accent,
-    letterSpacing: 2,
-    marginBottom: 6,
-  },
-  pricingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  priceStrike: {
-    fontSize: 18,
-    color: theme.colors.textMuted,
-    textDecorationLine: 'line-through',
-  },
-  priceActive: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: theme.colors.header,
-  },
-  pricingSubText: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    marginTop: 2,
-    marginBottom: 20,
-  },
-  actionGroup: {
-    width: '100%',
-    gap: 12,
-  },
-  buyButton: {
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.lg,
-    paddingVertical: 15,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: theme.colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  buyButtonText: {
-    color: theme.colors.background,
-    fontWeight: 'bold',
-    fontSize: 16,
-    letterSpacing: 0.5,
-  },
-  restoreButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  restoreButtonText: {
-    color: theme.colors.textMuted,
-    fontSize: 13,
-    textDecorationLine: 'underline',
-  },
-  safetyNotice: {
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-  },
-  safetyText: {
-    fontSize: 11,
-    color: theme.colors.textMuted,
-    textAlign: 'center',
-  },
-});
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    bg: {
+      flex: 1,
+    },
+    overlay: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: 'rgba(10,5,25,0.72)',
+    },
+
+    close: {
+      position: 'absolute',
+      top: 50,
+      right: 20,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 10,
+    },
+    closeText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+
+    container: {
+      padding: 20,
+      paddingTop: 70,
+      paddingBottom: 40,
+    },
+
+    header: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    emoji: {
+      fontSize: 50,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '900',
+      color: '#fff',
+      marginTop: 6,
+    },
+    subtitle: {
+      color: '#cbd5e1',
+      marginTop: 4,
+      textAlign: 'center',
+    },
+
+    card: {
+      backgroundColor: 'rgba(20,15,35,0.9)',
+      padding: 16,
+      borderRadius: 16,
+      marginBottom: 16,
+    },
+
+    cardTitle: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 10,
+    },
+
+    cardText: {
+      color: '#cbd5e1',
+      fontSize: 13,
+    },
+
+    list: {
+      marginTop: 8,
+      gap: 6,
+    },
+
+    item: {
+      color: '#e2e8f0',
+      fontSize: 13,
+    },
+
+    quoteBox: {
+      marginTop: 12,
+      padding: 10,
+      borderLeftWidth: 3,
+      borderLeftColor: theme.colors.accent,
+    },
+
+    quote: {
+      color: '#e2e8f0',
+      fontStyle: 'italic',
+      fontSize: 12,
+    },
+
+    quoteAuthor: {
+      color: theme.colors.accent,
+      fontSize: 11,
+      marginTop: 4,
+      textAlign: 'right',
+    },
+
+    priceCard: {
+      backgroundColor: 'rgba(10,10,20,0.95)',
+      padding: 18,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+    },
+
+    priceLabel: {
+      color: theme.colors.star,
+      fontSize: 11,
+      fontWeight: '800',
+      textAlign: 'center',
+      marginBottom: 10,
+      letterSpacing: 1,
+    },
+
+    priceRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'baseline',
+      gap: 8,
+    },
+
+    strike: {
+      color: '#94a3b8',
+      textDecorationLine: 'line-through',
+    },
+
+    price: {
+      fontSize: 28,
+      fontWeight: '900',
+      color: '#fff',
+    },
+
+    currency: {
+      color: '#cbd5e1',
+      fontSize: 12,
+    },
+
+    small: {
+      textAlign: 'center',
+      color: '#94a3b8',
+      fontSize: 11,
+      marginTop: 6,
+    },
+
+    cta: {
+      marginTop: 14,
+      backgroundColor: theme.colors.star,
+      paddingVertical: 14,
+      borderRadius: 14,
+      alignItems: 'center',
+    },
+
+    ctaText: {
+      fontWeight: '800',
+      color: '#000',
+      fontSize: 15,
+    },
+
+    restore: {
+      textAlign: 'center',
+      color: '#94a3b8',
+      marginTop: 10,
+      textDecorationLine: 'underline',
+      fontSize: 12,
+    },
+
+    secure: {
+      textAlign: 'center',
+      fontSize: 10,
+      color: '#64748b',
+      marginTop: 8,
+    },
+
+    secondaryBtn: {
+      marginTop: 10,
+      alignSelf: 'flex-start',
+    },
+
+    secondaryBtnText: {
+      color: '#94a3b8',
+      textDecorationLine: 'underline',
+      fontSize: 12,
+    },
+  });

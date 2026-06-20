@@ -14,6 +14,12 @@ import { LegalScreen } from '../screens/LegalScreen';
 import { PremiumScreen } from '../screens/PremiumScreen';
 import { useTheme } from '../ThemeContext';
 
+// 1. Tipos de Parámetros de Rutas
+export type RootStackParamList = {
+  MainTabs: undefined;
+  Premium: undefined; // Movido al stack raíz para cubrir todo (incluso la barra inferior)
+};
+
 export type RootTabParamList = {
   Home: undefined;
   Reader: { url: string } | undefined;
@@ -27,12 +33,14 @@ export type MoreStackParamList = {
   Settings: undefined;
   SRSReview: { mode: 'normal' | 'queue' };
   Legal: undefined;
-  Premium: undefined;
 };
 
+// 2. Creación de los Navegadores
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<MoreStackParamList>();
 
+// 3. Sub-Navigator para la sección "More"
 const MoreNavigator = () => {
   const { theme } = useTheme();
   return (
@@ -76,15 +84,11 @@ const MoreNavigator = () => {
         component={LegalScreen} 
         options={{ title: 'Legal & Credits', headerShown: false }} 
       />
-      <Stack.Screen 
-        name="Premium" 
-        component={PremiumScreen} 
-        options={{ title: 'Shiba Pro ✨' }} 
-      />
     </Stack.Navigator>
   );
 };
 
+// Icono personalizado para las pestañas
 const TabIcon = ({ label, focused }: { label: string; focused: boolean }) => {
   const { theme } = useTheme();
   return (
@@ -99,7 +103,8 @@ const TabIcon = ({ label, focused }: { label: string; focused: boolean }) => {
   );
 };
 
-export const AppNavigator = () => {
+// 4. Navegador de Pestañas Inferiores (Tab Navigator)
+const MainTabNavigator = () => {
   const { theme } = useTheme();
 
   return (
@@ -147,7 +152,7 @@ export const AppNavigator = () => {
         component={ReaderScreen} 
         options={{ 
           title: 'Reader',
-          headerShown: false // We use our own header in ReaderScreen
+          headerShown: false
         }}
         initialParams={{ url: 'https://www.google.com' }}
       />
@@ -161,9 +166,33 @@ export const AppNavigator = () => {
         component={MoreNavigator} 
         options={{ 
           title: 'More',
-          headerShown: false // The stack has its own header
+          headerShown: false
         }}
       />
     </Tab.Navigator>
+  );
+};
+
+// 5. Navegador Raíz (Root Navigator)
+export const AppNavigator = () => {
+  return (
+    <RootStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      {/* Las pestañas que contienen toda la app base */}
+      <RootStack.Screen name="MainTabs" component={MainTabNavigator} />
+      
+      {/* La pantalla premium como modal sobrepuesta a todo (cubre las pestañas) */}
+      <RootStack.Screen 
+        name="Premium" 
+        component={PremiumScreen} 
+        options={{ 
+          presentation: 'modal',
+          animation: 'slide_from_bottom'
+        }} 
+      />
+    </RootStack.Navigator>
   );
 };
