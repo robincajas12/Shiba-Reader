@@ -71,9 +71,8 @@ export const PremiumScreen: React.FC = () => {
 
               <View style={styles.list}>
                 <Text style={styles.item}>✔ No ads</Text>
-                <Text style={styles.item}>✔ Supports development</Text>
                 <Text style={styles.item}>✔ Unlock all themes</Text>
-
+                <Text style={styles.item}>✔ Supports development</Text>
               </View>
               <View style={styles.quoteBox}>
                 <Text style={styles.quote}>
