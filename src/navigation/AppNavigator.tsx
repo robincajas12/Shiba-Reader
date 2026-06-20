@@ -11,6 +11,7 @@ import { VocabularyScreen } from '../screens/VocabularyScreen';
 import { MoreScreen } from '../screens/MoreScreen';
 import { SRSReviewScreen } from '../screens/SRSReviewScreen';
 import { LegalScreen } from '../screens/LegalScreen';
+import { PremiumScreen } from '../screens/PremiumScreen';
 import { useTheme } from '../ThemeContext';
 
 export type RootTabParamList = {
@@ -26,6 +27,7 @@ export type MoreStackParamList = {
   Settings: undefined;
   SRSReview: { mode: 'normal' | 'queue' };
   Legal: undefined;
+  Premium: undefined;
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -73,6 +75,11 @@ const MoreNavigator = () => {
         name="Legal" 
         component={LegalScreen} 
         options={{ title: 'Legal & Credits', headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="Premium" 
+        component={PremiumScreen} 
+        options={{ title: 'Shiba Pro ✨' }} 
       />
     </Stack.Navigator>
   );

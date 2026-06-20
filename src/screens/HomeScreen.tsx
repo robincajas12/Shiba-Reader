@@ -5,6 +5,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useBrowser } from '../hooks/useBrowser';
 import { useSRS } from '../hooks/useSRS';
 import { useTheme } from '../ThemeContext';
+import { AdBanner } from '../components/AdBanner';
 
 type TabParamList = {
   Home: undefined;
@@ -38,132 +39,135 @@ export const HomeScreen: React.FC = () => {
   const dynamicStyles = styles(theme);
 
   return (
-    <ScrollView style={dynamicStyles.container} showsVerticalScrollIndicator={false}>
-      <View style={dynamicStyles.hero}>
-        <View style={dynamicStyles.heroContent}>
-            <Text style={dynamicStyles.heroEmoji}>🐕</Text>
-            <View>
-                <Text style={dynamicStyles.heroTitle}>Shiba Reader</Text>
-                <Text style={dynamicStyles.heroSubtitle}>Master Japanese, one paw at a time</Text>
-            </View>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScrollView style={dynamicStyles.container} showsVerticalScrollIndicator={false}>
+        <View style={dynamicStyles.hero}>
+          <View style={dynamicStyles.heroContent}>
+              <Text style={dynamicStyles.heroEmoji}>🐕</Text>
+              <View>
+                  <Text style={dynamicStyles.heroTitle}>Shiba Reader</Text>
+                  <Text style={dynamicStyles.heroSubtitle}>Master Japanese, one paw at a time</Text>
+              </View>
+          </View>
         </View>
-      </View>
 
-      <View style={dynamicStyles.searchSection}>
-        <View style={dynamicStyles.inputWrapper}>
-            <TextInput
-            style={dynamicStyles.input}
-            placeholder="Search or enter URL..."
-            placeholderTextColor={theme.colors.textMuted}
-            value={url}
-            onChangeText={setUrl}
-            autoCapitalize="none"
-            keyboardType="url"
-            onSubmitEditing={() => handleOpenUrl(url)}
-            />
-            <TouchableOpacity 
-            style={dynamicStyles.goButton}
-            onPress={() => handleOpenUrl(url)}
-            >
-            <Text style={dynamicStyles.goButtonText}>GO</Text>
-            </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* SRS Status Section */}
-      <View style={dynamicStyles.section}>
-        <Text style={dynamicStyles.sectionTitle}>Training Center</Text>
-        <View style={dynamicStyles.srsGrid}>
-            <TouchableOpacity 
-            style={dynamicStyles.srsCardLarge}
-            onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'normal' } })}
-            >
-                <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.primary + '20' }]}>
-                    <Text style={dynamicStyles.srsEmoji}>🧠</Text>
-                </View>
-                <Text style={dynamicStyles.srsCardTitle}>Daily Review</Text>
-                <View style={dynamicStyles.srsStatusRow}>
-                    <Text style={dynamicStyles.srsStatusText}>
-                        {pendingCount > 0 ? `${pendingCount} due` : 'Finished'}
-                    </Text>
-                    {pendingCount > 0 && <View style={dynamicStyles.dot} />}
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-            style={dynamicStyles.srsCardLarge}
-            onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'queue' } })}
-            >
-                <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.accent + '20' }]}>
-                    <Text style={dynamicStyles.srsEmoji}>⚡</Text>
-                </View>
-                <Text style={dynamicStyles.srsCardTitle}>Mining Queue</Text>
-                <Text style={dynamicStyles.srsStatusText}>Prioritize</Text>
-            </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={dynamicStyles.section}>
-        <View style={dynamicStyles.sectionHeader}>
-          <Text style={dynamicStyles.sectionTitle}>Library</Text>
-          <TouchableOpacity onPress={refreshBrowserData} style={dynamicStyles.iconButton}>
-            <Text style={dynamicStyles.iconButtonEmoji}>🔄</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={dynamicStyles.bookmarksScroll}>
-          {bookmarks.length > 0 ? bookmarks.map((item) => (
-            <View key={item.id} style={dynamicStyles.bookmarkContainer}>
+        <View style={dynamicStyles.searchSection}>
+          <View style={dynamicStyles.inputWrapper}>
+              <TextInput
+              style={dynamicStyles.input}
+              placeholder="Search or enter URL..."
+              placeholderTextColor={theme.colors.textMuted}
+              value={url}
+              onChangeText={setUrl}
+              autoCapitalize="none"
+              keyboardType="url"
+              onSubmitEditing={() => handleOpenUrl(url)}
+              />
               <TouchableOpacity 
-                style={dynamicStyles.bookmarkCard}
-                onPress={() => handleOpenUrl(item.url)}
+              style={dynamicStyles.goButton}
+              onPress={() => handleOpenUrl(url)}
               >
-                <View style={dynamicStyles.bookmarkFavicon}>
-                    <Text style={dynamicStyles.bookmarkEmoji}>📖</Text>
-                </View>
-                <Text style={dynamicStyles.bookmarkTitle} numberOfLines={1}>{item.title}</Text>
+              <Text style={dynamicStyles.goButtonText}>GO</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={dynamicStyles.removeBookmarkBtn}
-                onPress={() => removeBookmark(item.id)}
-              >
-                <Text style={dynamicStyles.removeBtnText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          )) : (
-            <Text style={dynamicStyles.emptyHint}>No bookmarks yet</Text>
-          )}
-        </ScrollView>
-      </View>
-
-      <View style={dynamicStyles.section}>
-        <View style={dynamicStyles.sectionHeader}>
-          <Text style={dynamicStyles.sectionTitle}>Recent Journeys</Text>
-          {history.length > 0 && (
-            <TouchableOpacity onPress={clearHistory}>
-              <Text style={dynamicStyles.clearAllText}>Reset history</Text>
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
-        
-        <View style={dynamicStyles.historyCard}>
-            {history.length > 0 ? (
-            history.slice(0, 5).map((item, idx) => (
+
+        {/* SRS Status Section */}
+        <View style={dynamicStyles.section}>
+          <Text style={dynamicStyles.sectionTitle}>Training Center</Text>
+          <View style={dynamicStyles.srsGrid}>
+              <TouchableOpacity 
+              style={dynamicStyles.srsCardLarge}
+              onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'normal' } })}
+              >
+                  <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.primary + '20' }]}>
+                      <Text style={dynamicStyles.srsEmoji}>🧠</Text>
+                  </View>
+                  <Text style={dynamicStyles.srsCardTitle}>Daily Review</Text>
+                  <View style={dynamicStyles.srsStatusRow}>
+                      <Text style={dynamicStyles.srsStatusText}>
+                          {pendingCount > 0 ? `${pendingCount} due` : 'Finished'}
+                      </Text>
+                      {pendingCount > 0 && <View style={dynamicStyles.dot} />}
+                  </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+              style={dynamicStyles.srsCardLarge}
+              onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'queue' } })}
+              >
+                  <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.accent + '20' }]}>
+                      <Text style={dynamicStyles.srsEmoji}>⚡</Text>
+                  </View>
+                  <Text style={dynamicStyles.srsCardTitle}>Mining Queue</Text>
+                  <Text style={dynamicStyles.srsStatusText}>Prioritize</Text>
+              </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={dynamicStyles.section}>
+          <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}>Library</Text>
+            <TouchableOpacity onPress={refreshBrowserData} style={dynamicStyles.iconButton}>
+              <Text style={dynamicStyles.iconButtonEmoji}>🔄</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={dynamicStyles.bookmarksScroll}>
+            {bookmarks.length > 0 ? bookmarks.map((item) => (
+              <View key={item.id} style={dynamicStyles.bookmarkContainer}>
                 <TouchableOpacity 
-                key={item.id} 
-                style={[dynamicStyles.historyItem, idx === history.slice(0, 5).length - 1 && { borderBottomWidth: 0 }]}
-                onPress={() => handleOpenUrl(item.url)}
+                  style={dynamicStyles.bookmarkCard}
+                  onPress={() => handleOpenUrl(item.url)}
                 >
-                <Text style={dynamicStyles.historyUrl} numberOfLines={1}>{item.url}</Text>
-                <Text style={dynamicStyles.arrow}>›</Text>
+                  <View style={dynamicStyles.bookmarkFavicon}>
+                      <Text style={dynamicStyles.bookmarkEmoji}>📖</Text>
+                  </View>
+                  <Text style={dynamicStyles.bookmarkTitle} numberOfLines={1}>{item.title}</Text>
                 </TouchableOpacity>
-            ))
-            ) : (
-            <Text style={dynamicStyles.emptyText}>History is clear</Text>
+                <TouchableOpacity 
+                  style={dynamicStyles.removeBookmarkBtn}
+                  onPress={() => removeBookmark(item.id)}
+                >
+                  <Text style={dynamicStyles.removeBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            )) : (
+              <Text style={dynamicStyles.emptyHint}>No bookmarks yet</Text>
             )}
+          </ScrollView>
         </View>
-      </View>
-      <View style={{ height: 40 }} />
-    </ScrollView>
+
+        <View style={dynamicStyles.section}>
+          <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}>Recent Journeys</Text>
+            {history.length > 0 && (
+              <TouchableOpacity onPress={clearHistory}>
+                <Text style={dynamicStyles.clearAllText}>Reset history</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          <View style={dynamicStyles.historyCard}>
+              {history.length > 0 ? (
+              history.slice(0, 5).map((item, idx) => (
+                  <TouchableOpacity 
+                  key={item.id} 
+                  style={[dynamicStyles.historyItem, idx === history.slice(0, 5).length - 1 && { borderBottomWidth: 0 }]}
+                  onPress={() => handleOpenUrl(item.url)}
+                  >
+                  <Text style={dynamicStyles.historyUrl} numberOfLines={1}>{item.url}</Text>
+                  <Text style={dynamicStyles.arrow}>›</Text>
+                  </TouchableOpacity>
+              ))
+              ) : (
+              <Text style={dynamicStyles.emptyText}>History is clear</Text>
+              )}
+          </View>
+        </View>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+      <AdBanner />
+    </View>
   );
 };
 

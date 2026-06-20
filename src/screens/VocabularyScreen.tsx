@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useVocabulary } from '../hooks/useVocabulary';
 import { useTheme } from '../ThemeContext';
 import { StructuredContent } from '../components/StructuredContent';
+import { AdBanner } from '../components/AdBanner';
 
 // Sub-component for each vocabulary card
 const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void }> = React.memo(({ item, onRemove }) => {
@@ -206,6 +207,7 @@ export const VocabularyScreen: React.FC = () => {
                     }
                 />
             )}
+            <AdBanner />
         </View>
     );
 };

@@ -134,6 +134,7 @@ export const SettingsScreen: React.FC = () => {
         </View>
       </View>
 
+
       {/* GRUPO: INFO */}
       <View style={dynamicStyles.group}>
         <Text style={dynamicStyles.groupLabel}>Información</Text>

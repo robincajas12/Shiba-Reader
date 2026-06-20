@@ -6,12 +6,14 @@ import { useTheme } from '../ThemeContext';
 import { StructuredContent } from '../components/StructuredContent';
 import { MoreStackParamList } from '../navigation/AppNavigator';
 import { calculateNextReview } from '../utils/srsLogic';
+import { useSettings } from '../hooks/useSettings';
+import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 type SRSReviewRouteProp = RouteProp<MoreStackParamList, 'SRSReview'>;
 
 export const SRSReviewScreen: React.FC = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<SRSReviewRouteProp>();
   const { mode = 'normal' } = route.params || {};
   const { getPendingReviews, processReview } = useSRS();
@@ -23,6 +25,49 @@ export const SRSReviewScreen: React.FC = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [sessionFinished, setSessionFinished] = useState(false);
+
+  const { isAdFree } = useSettings();
+  const [interstitial, setInterstitial] = useState<any>(null);
+  const [adLoaded, setAdLoaded] = useState(false);
+
+  // Carga condicional del Intersticial
+  useEffect(() => {
+    if (isAdFree) return; // 🛑 Salida inmediata si es Premium: no crea ni precarga nada.
+
+    const adInstance = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+      requestNonPersonalizedAdsOnly: true,
+    });
+
+    const unsubscribeLoaded = adInstance.addAdEventListener(
+      AdEventType.LOADED,
+      () => {
+        setAdLoaded(true);
+      }
+    );
+
+    const unsubscribeClosed = adInstance.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        navigation.goBack();
+      }
+    );
+
+    adInstance.load();
+    setInterstitial(adInstance);
+
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeClosed();
+    };
+  }, [isAdFree, navigation]);
+
+  const handleFinish = () => {
+    if (!isAdFree && adLoaded && interstitial) {
+      interstitial.show();
+    } else {
+      navigation.goBack();
+    }
+  };
 
   // Contar duplicados reales (distintos vocab_id) en la sesión actual
   const duplicateTerms = useMemo(() => {
@@ -115,7 +160,7 @@ export const SRSReviewScreen: React.FC = () => {
         )}
         <TouchableOpacity 
           style={dynamicStyles.backButton} 
-          onPress={() => navigation.goBack()}
+          onPress={handleFinish}
         >
           <Text style={dynamicStyles.backButtonText}>Finish</Text>
         </TouchableOpacity>
