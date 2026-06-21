@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 export const PremiumScreen: React.FC = () => {
   const { theme } = useTheme();
   const { isAdFree, setIsAdFree } = useSettings();
-  const { buyRemoveAds, restorePurchases, isPurchasing } =
+  const { buyRemoveAds, restorePurchases, isPurchasing, localizedPrice } =
     useBilling(isAdFree, setIsAdFree);
 
   const navigation = useNavigation();
@@ -87,9 +87,14 @@ export const PremiumScreen: React.FC = () => {
               <Text style={styles.priceLabel}>ONE-TIME PURCHASE</Text>
 
               <View style={styles.priceRow}>
-                {/*<Text style={styles.strike}>$4.99</Text>*/}
-                <Text style={styles.price}>$1.99</Text>
-                <Text style={styles.currency}>USD</Text>
+                {localizedPrice ? (
+                  <Text style={styles.price}>{localizedPrice}</Text>
+                ) : (
+                  <>
+                    <Text style={styles.price}>$1.99</Text>
+                    <Text style={styles.currency}>USD</Text>
+                  </>
+                )}
               </View>
 
               <Text style={styles.small}>Lifetime access • No subscription</Text>

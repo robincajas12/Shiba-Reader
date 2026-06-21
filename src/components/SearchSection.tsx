@@ -27,7 +27,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   return (
     <View style={dynamicStyles.topSection}>
       <View style={dynamicStyles.brandRow}>
-        <Text style={dynamicStyles.logo}>Jitendex</Text>
+        <Text style={dynamicStyles.logo}>Analyze your sentence</Text>
         <View style={dynamicStyles.divider} />
       </View>
 

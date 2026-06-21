@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useState } from 'react';
+import { Alert } from 'react-native';
 import * as RNIap from 'react-native-iap';
 
 const productID = 'remove_ads';
@@ -8,6 +9,7 @@ export const useBilling = (
     setIsAdFree: (val: boolean) => void,
 ) => {
     const [isPurchasing, setIsPurchasing] = useState(false);
+    const [localizedPrice, setLocalizedPrice] = useState<string | null>(null);
 
     useEffect(() => {
         let purchaseUpdateSubscription: any;
@@ -16,6 +18,16 @@ export const useBilling = (
         const setupIap = async () => {
             try {
                 await RNIap.initConnection();
+
+                try {
+                    const products = await RNIap.fetchProducts({ skus: [productID] });
+                    if (products && products.length > 0) {
+                        Alert.alert(products[0].title);
+                        setLocalizedPrice(products[0].displayPrice + ' ' + products[0].currency);
+                    }
+                } catch (prodErr) {
+                    console.warn('Error al obtener los detalles del producto:', prodErr);
+                }
 
                 if (!isAdFree) {
                     const purchases = await RNIap.getAvailablePurchases();
@@ -39,11 +51,12 @@ export const useBilling = (
                                 });
 
                                 setIsAdFree(true);
-                            } catch (err) {
-                                console.error(
-                                    'Error finalizando transacción:',
+                                Alert.alert('Éxito', '¡Gracias por tu compra! Anuncios removidos.');
+                            } catch (err: any) {
+                                console.error( 
                                     err,
                                 );
+                                Alert.alert('Error', `Error al completar la transacción: ${err?.message || err}`);
                             } finally {
                                 setIsPurchasing(false);
                             }
@@ -56,6 +69,7 @@ export const useBilling = (
                             'Error en listener de compra:',
                             error,
                         );
+                        Alert.alert('Compra cancelada/error', error?.message || 'Hubo un problema al procesar la compra.');
                         setIsPurchasing(false);
                     });
             } catch (err) {
@@ -87,10 +101,14 @@ export const useBilling = (
                 },
                 type: 'in-app',
             });
-        } catch (err) {
+        } catch (err: any) {
             console.warn(
                 'Error al solicitar compra:',
                 err,
+            );
+            Alert.alert(
+                'Error de Compra',
+                `No se pudo iniciar la compra. Detalles: ${err?.message || err}`
             );
             setIsPurchasing(false);
         }
@@ -127,5 +145,7 @@ export const useBilling = (
         buyRemoveAds,
         restorePurchases,
         isPurchasing,
+        localizedPrice,
+        
     };
 };
