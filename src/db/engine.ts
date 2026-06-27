@@ -8,12 +8,14 @@ import { HistoryRepository } from './repositories/HistoryRepository';
 import { VocabularyRepository } from './repositories/VocabularyRepository';
 import { SRSRepository } from './repositories/SRSRepository';
 import { SettingsRepository } from './repositories/SettingsRepository';
+import { KanjiEggRepository } from './repositories/KanjiEggRepository';
 import { TableTermBank } from './schemas/Term';
 import { TablePrueba } from './schemas/Prueba';
 import { TableBookmark, TableHistory } from './schemas/Browser';
 import { TableVocabulary } from './schemas/Vocabulary';
 import { TableSRS } from './schemas/SRS';
 import { TableSettings } from './schemas/Settings';
+import { TableKanjiEgg } from './schemas/KanjiEgg';
 
 // Definimos el mapa de tipos estricto para los repositorios
 interface RepositoryMap {
@@ -24,6 +26,7 @@ interface RepositoryMap {
     'VocabularyRepository': VocabularyRepository;
     'SRSRepository': SRSRepository;
     'SettingsRepository': SettingsRepository;
+    'KanjiEggRepository': KanjiEggRepository;
 }
 
 class DbEngine {
@@ -77,10 +80,11 @@ const Repositories: RepositoryMap = {
     'HistoryRepository': new HistoryRepository(),
     'VocabularyRepository': new VocabularyRepository(),
     'SRSRepository': new SRSRepository(),
-    'SettingsRepository': new SettingsRepository()
+    'SettingsRepository': new SettingsRepository(),
+    'KanjiEggRepository': new KanjiEggRepository()
 };
 
-const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory, TableVocabulary, TableSRS, TableSettings], Repositories);
+const dbEngine = new DbEngine([TableTermBank, TablePrueba, TableBookmark, TableHistory, TableVocabulary, TableSRS, TableSettings, TableKanjiEgg], Repositories);
 
 async function verificarIndicesReales() {
     // Le pedimos a SQLite que nos muestre todos los índices creados en la base de datos

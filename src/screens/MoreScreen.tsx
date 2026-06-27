@@ -22,6 +22,12 @@ export const MoreScreen: React.FC = () => {
       onPress: () => navigation.navigate('SRSReview'),
     },
     {
+      title: 'Kanji Hatchery',
+      icon: '卵',
+      description: 'Discover and hatch Kanji eggs as you read.',
+      onPress: () => navigation.navigate('KanjiEgg'),
+    },
+    {
       title: 'Search',
       icon: '検',
       description: 'Search terms in installed dictionaries.',

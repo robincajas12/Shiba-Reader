@@ -6,6 +6,7 @@ import { useBrowser } from '../hooks/useBrowser';
 import { useSRS } from '../hooks/useSRS';
 import { useTheme } from '../ThemeContext';
 import { AdBanner } from '../components/AdBanner';
+import { dbEngine } from '../db/engine';
 
 type TabParamList = {
   Home: undefined;
@@ -18,6 +19,7 @@ type TabParamList = {
 export const HomeScreen: React.FC = () => {
   const [url, setUrl] = useState('');
   const [pendingCount, setPendingCount] = useState(0);
+  const [kanjiStats, setKanjiStats] = useState({ total: 0, eggs: 0, hatched: 0 });
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<any>>();
   const { history, bookmarks, clearHistory, removeBookmark, refreshBrowserData } = useBrowser();
@@ -27,6 +29,9 @@ export const HomeScreen: React.FC = () => {
     useCallback(() => {
       refreshBrowserData();
       getPendingCount().then(setPendingCount);
+      
+      const kanjiEggRepo = dbEngine.getRepository('KanjiEggRepository');
+      kanjiEggRepo.getStats().then(setKanjiStats);
     }, [refreshBrowserData, getPendingCount])
   );
 
@@ -103,6 +108,26 @@ export const HomeScreen: React.FC = () => {
                   <Text style={dynamicStyles.srsStatusText}>Prioritize</Text>
               </TouchableOpacity>
           </View>
+
+          {/* Kanji Hatchery full-width card */}
+          <TouchableOpacity 
+            style={dynamicStyles.srsCardFullWidth}
+            onPress={() => navigation.navigate('MoreStack', { screen: 'KanjiEgg' })}
+            activeOpacity={0.85}
+          >
+              <View style={dynamicStyles.srsIconCircleRow}>
+                  <View style={[dynamicStyles.srsIconCircleSmall, { backgroundColor: theme.colors.star + '20' }]}>
+                      <Text style={dynamicStyles.srsEmojiSmall}>🥚</Text>
+                  </View>
+                  <View style={{ marginLeft: 15, flex: 1 }}>
+                      <Text style={dynamicStyles.srsCardTitleLeft}>Incubadora Kanji</Text>
+                      <Text style={dynamicStyles.srsStatusText}>
+                          {kanjiStats.hatched} Eclosionados • {kanjiStats.eggs} Incubando
+                      </Text>
+                  </View>
+                  <Text style={dynamicStyles.arrow}>›</Text>
+              </View>
+          </TouchableOpacity>
         </View>
 
         <View style={dynamicStyles.section}>
@@ -276,6 +301,40 @@ const styles = (theme: any) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
+  },
+  srsCardFullWidth: {
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 25,
+    padding: 20,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  srsIconCircleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  srsIconCircleSmall: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  srsEmojiSmall: {
+    fontSize: 22,
+  },
+  srsCardTitleLeft: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: theme.colors.header,
+    marginBottom: 2,
   },
   srsIconCircle: {
     width: 60,

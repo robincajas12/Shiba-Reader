@@ -116,8 +116,55 @@ export const DictionaryPopup: React.FC<DictionaryPopupProps> = React.memo(({
       
       if (results && results.length > 0) {
         const [term] = results[0].entry;
-        getSRSStatus(term).then(cards => {
+        getSRSStatus(term).then(async (cards) => {
           setMatchingCards(cards);
+
+          // Gamificación: Descubrir kanjis o sumar +0.1 si la palabra ya existía en vocabulario
+          try {
+            const kanjis = term.match(/[\u4e00-\u9faf]/g) || [];
+            const uniqueKanjis = Array.from(new Set(kanjis));
+            if (uniqueKanjis.length > 0) {
+              const { dbEngine } = require('../db/engine');
+              const kanjiEggRepo = dbEngine.getRepository('KanjiEggRepository');
+              const hatchedList: string[] = [];
+
+              for (const kanji of uniqueKanjis) {
+                const egg = await kanjiEggRepo.findByKanji(kanji);
+                if (!egg) {
+                  // Descubrir un nuevo huevo (puntos = 0)
+                  await kanjiEggRepo.insert({
+                    kanji,
+                    points: 0.0,
+                    status: 'egg',
+                    discovered_at: Date.now(),
+                    hatched_at: null
+                  });
+                } else if (cards.length > 0) {
+                  // Si la palabra ya está minada (exista en vocabulario), sumamos 0.1 puntos
+                  const newPoints = Math.min(egg.points + 0.1, 100);
+                  let status = egg.status;
+                  let hatchedAt = egg.hatched_at;
+                  if (egg.status === 'egg' && newPoints >= 5.0) {
+                    status = 'hatched';
+                    hatchedAt = Date.now();
+                    hatchedList.push(kanji);
+                  }
+                  await kanjiEggRepo.updatePoints(kanji, newPoints, status, hatchedAt);
+                }
+              }
+
+              if (hatchedList.length > 0) {
+                const { Alert } = require('react-native');
+                Alert.alert(
+                  '¡Eclosión de Kanji! 🥚✨',
+                  `¡Felicidades! Los siguientes kanjis han eclosionado al repasar: ${hatchedList.join(', ')}`
+                );
+              }
+            }
+          } catch (kErr) {
+            console.error("Error al procesar kanji eggs en popup lookup:", kErr);
+          }
+
           const ids = new Set<number>();
           cards.forEach(c => {
             if (cards.length === 1 || c.vocabEntry.sentence === sentence) {

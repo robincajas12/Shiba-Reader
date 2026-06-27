@@ -66,6 +66,48 @@ export const useVocabulary = () => {
                     created_at: Date.now(),
                     id: 0
                 });
+
+                // Gamificación: Incrementar puntos a los Kanjis del término minado (+1.0 punto)
+                try {
+                    const kanjis = term.match(/[\u4e00-\u9faf]/g) || [];
+                    const uniqueKanjis = Array.from(new Set(kanjis));
+                    const kanjiEggRepo = dbEngine.getRepository('KanjiEggRepository');
+                    const hatchedList: string[] = [];
+                    
+                    for (const kanji of uniqueKanjis) {
+                        const egg = await kanjiEggRepo.findByKanji(kanji);
+                        if (!egg) {
+                            // Descubrir con 1 punto
+                            await kanjiEggRepo.insert({
+                                kanji,
+                                points: 1.0,
+                                status: 'egg',
+                                discovered_at: Date.now(),
+                                hatched_at: null
+                            });
+                        } else {
+                            const newPoints = Math.min(egg.points + 1.0, 100);
+                            let status = egg.status;
+                            let hatchedAt = egg.hatched_at;
+                            if (egg.status === 'egg' && newPoints >= 5.0) {
+                                status = 'hatched';
+                                hatchedAt = Date.now();
+                                hatchedList.push(kanji);
+                            }
+                            await kanjiEggRepo.updatePoints(kanji, newPoints, status, hatchedAt);
+                        }
+                    }
+                    
+                    if (hatchedList.length > 0) {
+                        const { Alert } = require('react-native');
+                        Alert.alert(
+                            '¡Eclosión de Kanji! 🥚✨',
+                            `¡Felicidades! Los siguientes kanjis han eclosionado al minar: ${hatchedList.join(', ')}`
+                        );
+                    }
+                } catch (kErr) {
+                    console.error("Error al procesar kanji eggs en addVocabulary:", kErr);
+                }
             }
             
             await loadVocabulary();

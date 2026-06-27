@@ -12,6 +12,7 @@ import { MoreScreen } from '../screens/MoreScreen';
 import { SRSReviewScreen } from '../screens/SRSReviewScreen';
 import { LegalScreen } from '../screens/LegalScreen';
 import { PremiumScreen } from '../screens/PremiumScreen';
+import { KanjiEggScreen } from '../screens/KanjiEggScreen';
 import { useTheme } from '../ThemeContext';
 
 // 1. Tipos de Parámetros de Rutas
@@ -33,6 +34,7 @@ export type MoreStackParamList = {
   Settings: undefined;
   SRSReview: { mode: 'normal' | 'queue' };
   Legal: undefined;
+  KanjiEgg: undefined;
 };
 
 // 2. Creación de los Navegadores
@@ -83,6 +85,11 @@ const MoreNavigator = () => {
         name="Legal" 
         component={LegalScreen} 
         options={{ title: 'Legal & Credits', headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="KanjiEgg" 
+        component={KanjiEggScreen} 
+        options={{ title: 'Kanji Hatchery', headerShown: false }} 
       />
     </Stack.Navigator>
   );
