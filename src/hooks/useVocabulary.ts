@@ -129,6 +129,15 @@ export const useVocabulary = () => {
         }
     }, [vocabRepo]);
 
+    const updateLastCardSentence = useCallback(async (sentence: string) => {
+        try {
+            await vocabRepo.updateLatestSentence(sentence);
+            await loadVocabulary();
+        } catch (error) {
+            console.error("Error updating last card sentence:", error);
+        }
+    }, [vocabRepo, loadVocabulary]);
+
     return {
         vocabulary,
         todayCount,
@@ -137,6 +146,7 @@ export const useVocabulary = () => {
         setDailyGoal: updateDailyGoal,
         addVocabulary,
         removeVocabulary,
+        updateLastCardSentence,
         refreshVocabulary: loadVocabulary
     };
 };

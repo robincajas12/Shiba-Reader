@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Animated } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 
@@ -38,8 +38,6 @@ export const ReaderScreen: React.FC = () => {
   // Tools Settings
   const [showTools, setShowTools] = useState(false);
   const toolsAnim = useRef(new Animated.Value(0)).current;
-  const [fontSize, setFontSize] = useState(100);
-  const [furiganaVisible, setFuriganaVisible] = useState(true);
 
   const isFav = bookmarks.some(b => b.url === currentUrl);
 
@@ -52,27 +50,6 @@ export const ReaderScreen: React.FC = () => {
       friction: 8
     }).start();
   }, [showTools]);
-
-  // Función para reaplicar herramientas (útil en carga de página)
-  const applyTools = useCallback(() => {
-    // Usamos un pequeño timeout para asegurar que el DOM esté listo en sitios pesados
-    setTimeout(() => {
-        if (readerRef.current) {
-            if (typeof readerRef.current.setFontSize === 'function') {
-                readerRef.current.setFontSize(fontSize);
-            }
-            if (typeof readerRef.current.setFuriganaVisible === 'function') {
-                readerRef.current.setFuriganaVisible(furiganaVisible);
-            }
-        }
-    }, 500);
-  }, [fontSize, furiganaVisible]);
-
-  // Sync tools when settings change
-  useEffect(() => {
-    applyTools();
-  }, [applyTools]);
-
   const toggleBookmark = async () => {
     if (isFav) {
       const bookmark = bookmarks.find(b => b.url === currentUrl);
@@ -166,26 +143,10 @@ export const ReaderScreen: React.FC = () => {
         <Animated.View style={[dynamicStyles.toolsShelf, { transform: [{ translateY: toolsTranslateY }] }]}>
             <View style={dynamicStyles.shelfContent}>
                 <View style={dynamicStyles.toolGroup}>
-                    <Text style={dynamicStyles.toolLabel}>FONT SIZE</Text>
-                    <View style={dynamicStyles.row}>
-                        <TouchableOpacity onPress={() => setFontSize(Math.max(50, fontSize-10))} style={dynamicStyles.shelfItem}>
-                            <Text style={dynamicStyles.shelfItemText}>A-</Text>
-                        </TouchableOpacity>
-                        <Text style={dynamicStyles.sizeValue}>{fontSize}%</Text>
-                        <TouchableOpacity onPress={() => setFontSize(Math.min(200, fontSize+10))} style={dynamicStyles.shelfItem}>
-                            <Text style={dynamicStyles.shelfItemText}>A+</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <View style={dynamicStyles.vDivider} />
-                <View style={dynamicStyles.toolGroup}>
                     <Text style={dynamicStyles.toolLabel}>READING</Text>
                     <View style={dynamicStyles.row}>
-                        <TouchableOpacity onPress={() => setFuriganaVisible(!furiganaVisible)} style={[dynamicStyles.shelfItem, furiganaVisible && dynamicStyles.shelfItemActive]}>
-                            <Text style={[dynamicStyles.shelfItemText, furiganaVisible && {color:'#fff'}]}>あ</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity onPress={toggleScanner} style={[dynamicStyles.shelfItem, isScannerEnabled && dynamicStyles.shelfItemActive]}>
-                            <Text style={[dynamicStyles.shelfItemText, isScannerEnabled && {color:'#fff'}]}>{isScannerEnabled ? '📖' : '🔒'}</Text>
+                            <Text style={[dynamicStyles.shelfItemText, isScannerEnabled && {color:'#fff'}]}>{isScannerEnabled ? 'ON' : 'OFF'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -201,7 +162,6 @@ export const ReaderScreen: React.FC = () => {
           }}
           onNavigationStateChange={handleNavigationStateChange}
           onLoadProgress={(e: any) => setProgress(e.nativeEvent.progress)}
-          onLoadEnd={applyTools}
           isScannerEnabled={isScannerEnabled}
         />
 
@@ -285,11 +245,11 @@ const styles = (theme: any) => StyleSheet.create({
   shelfItem: { width: 36, height: 36, backgroundColor: theme.colors.background, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: theme.colors.border },
   shelfItemActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
   shelfItemText: { fontSize: 12, fontWeight: 'bold', color: theme.colors.text },
-  sizeValue: { fontSize: 10, fontWeight: 'bold', color: theme.colors.textMuted, width: 35, textAlign: 'center' },
-  vDivider: { width: 1, height: 30, backgroundColor: theme.colors.border },
 
   selectionMenuContainer: { position: 'absolute', backgroundColor: theme.colors.surface, flexDirection: 'row', borderRadius: 25, borderWidth: 1, borderColor: theme.colors.primary, elevation: 8, zIndex: 1000, overflow: 'hidden' },
   selectionMenuButton: { paddingHorizontal: 16, paddingVertical: 10, justifyContent: 'center', alignItems: 'center' },
   selectionMenuDivider: { width: 1, backgroundColor: theme.colors.border, marginVertical: 8 },
   selectionButtonText: { color: theme.colors.primary, fontWeight: 'bold', fontSize: 13 },
 });
+
+
