@@ -135,7 +135,7 @@ const MainTabNavigator = () => {
       <Tab.Screen 
         name="Home" 
         component={HomeScreen} 
-        options={{ title: 'Home' }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen 
         name="Reader" 

@@ -5,9 +5,11 @@ import { useVocabulary } from '../hooks/useVocabulary';
 import { useTheme } from '../ThemeContext';
 import { StructuredContent } from '../components/StructuredContent';
 import { AdBanner } from '../components/AdBanner';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { CSVExportDialog } from '../components/CSVExportDialog';
 
 // Sub-component for each vocabulary card
-const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void }> = React.memo(({ item, onRemove }) => {
+const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void; onRequestDelete: (id: number) => void }> = React.memo(({ item, onRemove, onRequestDelete }) => {
     const { theme } = useTheme();
     const [showDefinition, setShowDefinition] = useState(false);
     
@@ -30,7 +32,7 @@ const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void }> = 
                     {item.reading !== item.term && <Text style={dynamicStyles.reading}>{item.reading}</Text>}
                 </View>
                 <TouchableOpacity 
-                    onPress={() => onRemove(item.id)}
+                    onPress={() => onRequestDelete(item.id)}
                     style={dynamicStyles.deleteButton}
                 >
                     <Text style={dynamicStyles.deleteText}>✕</Text>
@@ -67,13 +69,18 @@ type SortMode = 'newest' | 'oldest' | 'alpha';
 
 export const VocabularyScreen: React.FC = () => {
     const { theme } = useTheme();
-    const { vocabulary, removeVocabulary, refreshVocabulary, todayCount, totalCount, dailyGoal } = useVocabulary();
+    const { vocabulary, removeVocabulary, deleteAllVocabulary, refreshVocabulary, todayCount, totalCount, dailyGoal } = useVocabulary();
     
     const [search, setSearch] = useState('');
     const [sortMode, setSortMode] = useState<SortMode>('newest');
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [showMoreActions, setShowMoreActions] = useState(false);
+    const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+    const [showDeleteItemConfirm, setShowDeleteItemConfirm] = useState(false);
+    const [showCsvExportDialog, setShowCsvExportDialog] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
     const PAGE_SIZE = 20;
 
@@ -100,7 +107,14 @@ export const VocabularyScreen: React.FC = () => {
     );
 
     const renderItem = ({ item }: { item: any }) => (
-        <VocabularyItem item={item} onRemove={removeVocabulary} />
+        <VocabularyItem
+            item={item}
+            onRemove={removeVocabulary}
+            onRequestDelete={(id) => {
+                setItemToDelete(id);
+                setShowDeleteItemConfirm(true);
+            }}
+        />
     );
 
     const dynamicStyles = styles(theme);
@@ -145,24 +159,50 @@ export const VocabularyScreen: React.FC = () => {
                 </View>
 
                 <View style={dynamicStyles.sortContainer}>
-                    {(['newest', 'oldest', 'alpha'] as SortMode[]).map(mode => (
-                        <TouchableOpacity 
-                            key={mode}
-                            onPress={() => setSortMode(mode)}
-                            style={[
-                                dynamicStyles.sortButton, 
-                                sortMode === mode && { backgroundColor: theme.colors.primary }
-                            ]}
-                        >
-                            <Text style={[
-                                dynamicStyles.sortButtonText, 
-                                sortMode === mode && { color: theme.colors.onPrimary }
-                            ]}>
-                                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    <View style={dynamicStyles.sortButtonsWrap}>
+                        {(['newest', 'oldest', 'alpha'] as SortMode[]).map(mode => (
+                            <TouchableOpacity 
+                                key={mode}
+                                onPress={() => setSortMode(mode)}
+                                style={[
+                                    dynamicStyles.sortButton, 
+                                    sortMode === mode && { backgroundColor: theme.colors.primary }
+                                ]}
+                            >
+                                <Text style={[
+                                    dynamicStyles.sortButtonText, 
+                                    sortMode === mode && { color: theme.colors.onPrimary }
+                                ]}>
+                                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    <TouchableOpacity
+                        onPress={() => setShowMoreActions((prev) => !prev)}
+                        style={dynamicStyles.moreButton}
+                    >
+                        <Text style={dynamicStyles.moreButtonText}>Export & More</Text>
+                    </TouchableOpacity>
                 </View>
+
+                {showMoreActions && (
+                    <View style={dynamicStyles.actionRow}>
+                        <TouchableOpacity
+                            style={dynamicStyles.actionButton}
+                            onPress={() => setShowDeleteAllConfirm(true)}
+                        >
+                            <Text style={dynamicStyles.actionButtonText}>deleteAll</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={dynamicStyles.actionButton}
+                            onPress={() => setShowCsvExportDialog(true)}
+                        >
+                            <Text style={dynamicStyles.actionButtonText}>tocsv</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
 
             {loading && vocabulary.length === 0 ? (
@@ -196,6 +236,55 @@ export const VocabularyScreen: React.FC = () => {
                     }
                 />
             )}
+            <ConfirmDialog
+                visible={showDeleteAllConfirm}
+                title="Delete all vocabulary?"
+                message="This action will permanently remove all saved words from your library. This cannot be undone."
+                confirmText="Delete all"
+                cancelText="Cancel"
+                destructive
+                onConfirm={async () => {
+                    await deleteAllVocabulary();
+                    setShowDeleteAllConfirm(false);
+                    setShowMoreActions(false);
+                }}
+                onCancel={() => setShowDeleteAllConfirm(false)}
+            />
+
+            <ConfirmDialog
+                visible={showDeleteItemConfirm}
+                title="Delete this word?"
+                message="This saved word will be permanently removed from your vocabulary library."
+                confirmText="Delete"
+                cancelText="Cancel"
+                destructive
+                onConfirm={async () => {
+                    if (itemToDelete !== null) {
+                        await removeVocabulary(itemToDelete);
+                    }
+                    setShowDeleteItemConfirm(false);
+                    setItemToDelete(null);
+                }}
+                onCancel={() => {
+                    setShowDeleteItemConfirm(false);
+                    setItemToDelete(null);
+                }}
+            />
+
+            <CSVExportDialog
+                visible={showCsvExportDialog}
+                title="Export vocabulary to CSV"
+                filename="vocabulary.csv"
+                rows={vocabulary.map((item) => ({
+                    term: item.term,
+                    reading: item.reading,
+                    definition: item.definition,
+                    sentence: item.sentence,
+                    created_at: new Date(item.created_at).toISOString(),
+                }))}
+                onClose={() => setShowCsvExportDialog(false)}
+            />
+
             <AdBanner />
         </View>
     );
@@ -399,13 +488,20 @@ const styles = (theme: any) => StyleSheet.create({
     },
     sortContainer: {
         flexDirection: 'row',
-        justifyContent: 'flex-start',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 8,
+    },
+    sortButtonsWrap: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        flex: 1,
+        gap: 8,
     },
     sortButton: {
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 8,
-        marginRight: 8,
         borderWidth: 1,
         borderColor: theme.colors.border,
     },
@@ -413,5 +509,42 @@ const styles = (theme: any) => StyleSheet.create({
         fontSize: 11,
         fontWeight: 'bold',
         color: theme.colors.textMuted,
+    },
+    moreButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        backgroundColor: theme.colors.background,
+    },
+    moreButtonText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: theme.colors.text,
+    },
+    actionRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        gap: 6,
+    },
+    actionButton: {
+        flex: 1,
+        backgroundColor: theme.colors.background,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        borderRadius: 8,
+        paddingVertical: 7,
+        paddingHorizontal: 8,
+        alignItems: 'center',
+        minHeight: 30,
+    },
+    actionButtonText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: theme.colors.textMuted,
+        textTransform: 'lowercase',
+        letterSpacing: 0.3,
     },
 });

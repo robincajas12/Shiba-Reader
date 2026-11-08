@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Animated } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Dimensions, Animated } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 
 // Components
@@ -11,6 +11,7 @@ import { useReaderLookup } from '../hooks/useReaderLookup';
 import { useBrowser } from '../hooks/useBrowser';
 import { useVocabulary } from '../hooks/useVocabulary';
 import { useTheme } from '../ThemeContext';
+import { buildTargetUrl } from './HomeScreen';
 
 type RootStackParamList = {
   Reader: { url: string };
@@ -28,6 +29,7 @@ export const ReaderScreen: React.FC = () => {
   
   const initialUrl = route.params?.url || 'https://www.google.com';
   const [currentUrl, setCurrentUrl] = useState(initialUrl);
+  const [typedUrl, setTypedUrl] = useState(initialUrl);
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   
@@ -40,6 +42,14 @@ export const ReaderScreen: React.FC = () => {
   const toolsAnim = useRef(new Animated.Value(0)).current;
 
   const isFav = bookmarks.some(b => b.url === currentUrl);
+
+  const handleNavigateToInput = () => {
+    const normalized = buildTargetUrl(typedUrl);
+    setCurrentUrl(normalized);
+    setTypedUrl(normalized);
+    addToHistory(normalized);
+    navigation.setParams?.({ url: normalized });
+  };
 
   // Animation for tools shelf
   useEffect(() => {
@@ -66,6 +76,7 @@ export const ReaderScreen: React.FC = () => {
     
     if (navState.url && navState.url !== currentUrl) {
       setCurrentUrl(navState.url);
+      setTypedUrl(navState.url);
       addToHistory(navState.url);
     }
   };
@@ -73,6 +84,7 @@ export const ReaderScreen: React.FC = () => {
   useEffect(() => {
     if (initialUrl) {
       setCurrentUrl(initialUrl);
+      setTypedUrl(initialUrl);
       addToHistory(initialUrl);
     }
   }, [initialUrl, addToHistory]);
@@ -114,22 +126,27 @@ export const ReaderScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={dynamicStyles.urlDisplay}>
-          <Text style={dynamicStyles.urlText} numberOfLines={1}>{currentUrl}</Text>
-        </View>
+        <TextInput
+          style={dynamicStyles.urlDisplay}
+          value={typedUrl}
+          onChangeText={setTypedUrl}
+          onSubmitEditing={handleNavigateToInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          placeholder="Search or enter URL"
+          placeholderTextColor={theme.colors.textMuted}
+          selectionColor={theme.colors.primary}
+          textAlign="left"
+          color={theme.colors.text}
+        />
         
         <View style={dynamicStyles.headerActions}>
             <TouchableOpacity 
                 onPress={() => setShowTools(!showTools)} 
                 style={[dynamicStyles.actionBtn, showTools && dynamicStyles.actionBtnActive]}
             >
-                <Text style={dynamicStyles.actionIcon}>🛠️</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={toggleBookmark} style={dynamicStyles.favButton}>
-                <Text style={[dynamicStyles.favButtonText, isFav && dynamicStyles.favActive]}>
-                    {isFav ? '★' : '☆'}
-                </Text>
+                <Text style={[dynamicStyles.actionIcon, showTools && dynamicStyles.actionIconActive]}>🛠️</Text>
             </TouchableOpacity>
         </View>
 
@@ -145,8 +162,22 @@ export const ReaderScreen: React.FC = () => {
                 <View style={dynamicStyles.toolGroup}>
                     <Text style={dynamicStyles.toolLabel}>READING</Text>
                     <View style={dynamicStyles.row}>
+                        <TouchableOpacity 
+                            onPress={() => readerRef.current?.reload()} 
+                            style={dynamicStyles.shelfItem}
+                            accessibilityLabel="Reload page"
+                        >
+                            <Text style={dynamicStyles.shelfItemText}>↻</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={toggleScanner} style={[dynamicStyles.shelfItem, isScannerEnabled && dynamicStyles.shelfItemActive]}>
-                            <Text style={[dynamicStyles.shelfItemText, isScannerEnabled && {color:'#fff'}]}>{isScannerEnabled ? 'ON' : 'OFF'}</Text>
+                            <Text style={[dynamicStyles.shelfItemText, isScannerEnabled && dynamicStyles.shelfItemTextActive]}>{isScannerEnabled ? 'ON' : 'OFF'}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            onPress={toggleBookmark} 
+                            style={[dynamicStyles.shelfItem, isFav && dynamicStyles.shelfItemActive]}
+                            accessibilityLabel="Add to favorites"
+                        >
+                            <Text style={[dynamicStyles.shelfItemText, isFav && dynamicStyles.shelfItemTextActive]}>{isFav ? '★' : '☆'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -155,7 +186,7 @@ export const ReaderScreen: React.FC = () => {
 
         <Reader 
           ref={readerRef}
-          uri={initialUrl}
+          uri={currentUrl}
           onMessage={(e) => {
             if (showTools) setShowTools(false);
             handleWebViewMessage(e);
@@ -211,12 +242,15 @@ const styles = (theme: any) => StyleSheet.create({
     paddingVertical: 6,
     borderRadius: theme.radius.md,
     marginRight: theme.spacing.sm,
+    color: theme.colors.text,
+    fontSize: 12,
   },
   urlText: { fontSize: 12, color: theme.colors.textMuted },
   headerActions: { flexDirection: 'row', alignItems: 'center' },
   actionBtn: { padding: 6, borderRadius: 8, marginRight: 4 },
   actionBtnActive: { backgroundColor: theme.colors.primary + '20' },
-  actionIcon: { fontSize: 16 },
+  actionIcon: { fontSize: 16, color: theme.colors.text },
+  actionIconActive: { color: theme.colors.primary },
   favButton: { padding: 5 },
   favButtonText: { fontSize: 22, color: theme.colors.border },
   favActive: { color: theme.colors.star },
@@ -245,6 +279,7 @@ const styles = (theme: any) => StyleSheet.create({
   shelfItem: { width: 36, height: 36, backgroundColor: theme.colors.background, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: theme.colors.border },
   shelfItemActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
   shelfItemText: { fontSize: 12, fontWeight: 'bold', color: theme.colors.text },
+  shelfItemTextActive: { color: theme.colors.onPrimary },
 
   selectionMenuContainer: { position: 'absolute', backgroundColor: theme.colors.surface, flexDirection: 'row', borderRadius: 25, borderWidth: 1, borderColor: theme.colors.primary, elevation: 8, zIndex: 1000, overflow: 'hidden' },
   selectionMenuButton: { paddingHorizontal: 16, paddingVertical: 10, justifyContent: 'center', alignItems: 'center' },

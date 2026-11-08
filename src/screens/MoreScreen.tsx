@@ -38,8 +38,7 @@ export const MoreScreen: React.FC = () => {
   return (
     <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.contentContainer}>
       <Text style={dynamicStyles.title}>More Options</Text>
-      
-      {/* BOTÓN PREMIUM DESTACADO (CTA A LA PANTALLA DE COMPRA) */}
+
       {isAdFree ? (
         <View style={dynamicStyles.adFreeBanner}>
           <View style={dynamicStyles.adFreeIconContainer}>
@@ -70,7 +69,6 @@ export const MoreScreen: React.FC = () => {
         </TouchableOpacity>
       )}
 
-      {/* RESTRICCIÓN DE OPCIONES ESTÁNDAR */}
       <View style={dynamicStyles.grid}>
         {menuItems.map((item, index) => (
           <TouchableOpacity 
@@ -87,7 +85,7 @@ export const MoreScreen: React.FC = () => {
           </TouchableOpacity>
         ))}
       </View>
-      
+
       <View style={dynamicStyles.footer}>
         <Text style={dynamicStyles.footerText}>Shiba Reader v0.2.0</Text>
       </View>
@@ -228,6 +226,7 @@ const styles = (theme: any) => StyleSheet.create({
   icon: {
     fontSize: 32,
     marginRight: theme.spacing.lg,
+    color: theme.colors.header,
   },
   textContainer: {
     flex: 1,

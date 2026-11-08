@@ -9,7 +9,7 @@ import { dbEngine } from './src/db/engine';
 
 const App: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('Iniciando...');
+  const [loadingMessage, setLoadingMessage] = useState('Starting...');
 
   useEffect(() => {
     const initialize = async () => {
@@ -17,14 +17,14 @@ const App: React.FC = () => {
         // 1. Descomprimir la base de datos si es la primera vez
         await bootstrapDatabase((msg) => setLoadingMessage(msg));
         
-        // 2. Asegurar que todas las tablas existan (por si el ZIP solo trae term_bank)
-        setLoadingMessage('Configurando tablas...');
+        // 2. Ensure all tables exist (in case the ZIP only contains term_bank)
+        setLoadingMessage('Setting up tables...');
         await dbEngine.createTables();
         
         setIsReady(true);
       } catch (error) {
-        console.error('Error durante la inicialización:', error);
-        setLoadingMessage('Error al cargar la base de datos.');
+        console.error('Error during initialization:', error);
+        setLoadingMessage('Failed to load the database.');
       }
     };
 

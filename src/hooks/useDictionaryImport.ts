@@ -6,10 +6,17 @@ import RNFS from 'react-native-fs';
 import { dbEngine } from '../db/engine';
 import { TermBankEntry } from '../db/schemas/Term';
 
+/**
+ * @deprecated Dictionary ZIP import is no longer used by the app UI and should not be exposed.
+ * Kept temporarily for backward compatibility while legacy data import flows are removed.
+ */
 export const useDictionaryImport = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState('');
 
+  /**
+   * @deprecated This import flow is no longer available from settings and will be removed.
+   */
   const importFromZip = async () => {
     try {
       // 1. Seleccionar archivo

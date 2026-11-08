@@ -4,6 +4,10 @@ import { dbEngine } from '../db/engine';
 import { TermBankEntry } from '../db/schemas/Term';
 const termBank1 = require('../../dic/[JA-EN] jitendex-yomitan (2026-05-05)/term_bank_2.json');
 
+/**
+ * @deprecated This database seeding/verification flow is no longer exposed in the UI.
+ * It remains for legacy support only and will be removed in a future cleanup.
+ */
 export const useDatabaseSeeding = () => {
   const termRepository = useMemo(() => dbEngine.getRepository('TermBankEntryRepository'), []);
   const [loadingSeeding, setLoadingSeeding] = useState<boolean>(false);
@@ -65,6 +69,9 @@ const handleSeedDatabase = async () => {
   }
 };
 
+/**
+ * @deprecated This action is intentionally not surfaced in the app settings UI.
+ */
   const handleVerifyDatabase = async () => {
     const countData = await termRepository.getAll();
     Alert.alert('Current total', `Words in DB: ${countData.length}`);

@@ -5,6 +5,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useBrowser } from '../hooks/useBrowser';
 import { useTheme } from '../ThemeContext';
 import { AdBanner } from '../components/AdBanner';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 type TabParamList = {
   Home: undefined;
@@ -39,6 +40,9 @@ export const buildTargetUrl = (targetUrl: string): string => {
 
 export const HomeScreen: React.FC = () => {
   const [url, setUrl] = useState('');
+  const [showClearHistoryConfirm, setShowClearHistoryConfirm] = useState(false);
+  const [showRemoveBookmarkConfirm, setShowRemoveBookmarkConfirm] = useState(false);
+  const [bookmarkToRemove, setBookmarkToRemove] = useState<number | null>(null);
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<any>>();
   const { history, bookmarks, clearHistory, removeBookmark, refreshBrowserData } = useBrowser();
@@ -62,10 +66,7 @@ export const HomeScreen: React.FC = () => {
         <View style={dynamicStyles.hero}>
           <View style={dynamicStyles.heroContent}>
               <Text style={dynamicStyles.heroEmoji}>🐕</Text>
-              <View>
-                  <Text style={dynamicStyles.heroTitle}>Shiba Reader</Text>
-                  <Text style={dynamicStyles.heroSubtitle}>Master Japanese, one paw at a time</Text>
-              </View>
+              <Text style={dynamicStyles.heroTitle}>Shiba Reader</Text>
           </View>
         </View>
 
@@ -111,7 +112,10 @@ export const HomeScreen: React.FC = () => {
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={dynamicStyles.removeBookmarkBtn}
-                  onPress={() => removeBookmark(item.id)}
+                  onPress={() => {
+                    setBookmarkToRemove(item.id);
+                    setShowRemoveBookmarkConfirm(true);
+                  }}
                 >
                   <Text style={dynamicStyles.removeBtnText}>✕</Text>
                 </TouchableOpacity>
@@ -126,7 +130,7 @@ export const HomeScreen: React.FC = () => {
           <View style={dynamicStyles.sectionHeader}>
             <Text style={dynamicStyles.sectionTitle}>Recent Journeys</Text>
             {history.length > 0 && (
-              <TouchableOpacity onPress={clearHistory}>
+              <TouchableOpacity onPress={() => setShowClearHistoryConfirm(true)}>
                 <Text style={dynamicStyles.clearAllText}>Reset history</Text>
               </TouchableOpacity>
             )}
@@ -151,6 +155,41 @@ export const HomeScreen: React.FC = () => {
         </View>
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <ConfirmDialog
+        visible={showClearHistoryConfirm}
+        title="Reset browsing history?"
+        message="This will permanently remove your recent visits. This action cannot be undone."
+        confirmText="Reset history"
+        cancelText="Cancel"
+        destructive
+        onConfirm={async () => {
+          await clearHistory();
+          setShowClearHistoryConfirm(false);
+        }}
+        onCancel={() => setShowClearHistoryConfirm(false)}
+      />
+
+      <ConfirmDialog
+        visible={showRemoveBookmarkConfirm}
+        title="Remove bookmark?"
+        message="This bookmark will be deleted from your saved list. This action cannot be undone."
+        confirmText="Remove"
+        cancelText="Cancel"
+        destructive
+        onConfirm={async () => {
+          if (bookmarkToRemove !== null) {
+            await removeBookmark(bookmarkToRemove);
+          }
+          setShowRemoveBookmarkConfirm(false);
+          setBookmarkToRemove(null);
+        }}
+        onCancel={() => {
+          setShowRemoveBookmarkConfirm(false);
+          setBookmarkToRemove(null);
+        }}
+      />
+
       <AdBanner />
     </View>
   );

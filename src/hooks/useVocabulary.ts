@@ -81,6 +81,17 @@ export const useVocabulary = () => {
         }
     }, [vocabRepo]);
 
+    const deleteAllVocabulary = useCallback(async () => {
+        try {
+            await vocabRepo.deleteAll();
+            setVocabulary([]);
+            setTotalCount(0);
+            setTodayCount(0);
+        } catch (error) {
+            console.error("Error deleting all vocabulary:", error);
+        }
+    }, [vocabRepo]);
+
     const updateLastCardSentence = useCallback(async (sentence: string) => {
         try {
             await vocabRepo.updateLatestSentence(sentence);
@@ -99,6 +110,7 @@ export const useVocabulary = () => {
         addVocabulary,
         isAlreadySaved,
         removeVocabulary,
+        deleteAllVocabulary,
         updateLastCardSentence,
         refreshVocabulary: loadVocabulary
     };

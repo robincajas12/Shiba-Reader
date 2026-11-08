@@ -16,28 +16,28 @@ export const bootstrapDatabase = async (onProgress?: (msg: string) => void) => {
   const exists = await RNFS.exists(dbPath);
 
   if (!exists) {
-    onProgress?.('Preparando base de datos por primera vez...');
-    console.log('Base de datos no encontrada, iniciando descompresión...');
+    onProgress?.('Preparing database for first use...');
+    console.log('Database not found, starting extraction...');
 
     // Asegurar que el directorio existe
     await RNFS.mkdir(dbDir);
 
     const tempZipPath = `${RNFS.TemporaryDirectoryPath}/${ZIP_NAME}`;
 
-    onProgress?.('Copiando archivos del sistema...');
-    // Copiar desde assets de Android a carpeta temporal
+    onProgress?.('Copying system files...');
+    // Copy from Android assets to a temporary folder
     await RNFS.copyFileAssets(ZIP_NAME, tempZipPath);
 
-    onProgress?.('Descomprimiendo base de datos...');
+    onProgress?.('Extracting database...');
     // Descomprimir el contenido directamente en el directorio de la DB
     // Importante: El zip debe contener el archivo .db directamente o ajustarse aquí
     await unzip(tempZipPath, dbDir);
 
-    // Limpiar zip temporal
+    // Clean up temporary zip
     await RNFS.unlink(tempZipPath);
-    onProgress?.('Base de datos instalada.');
-    console.log('Base de datos instalada correctamente desde Assets.');
+    onProgress?.('Database installed.');
+    console.log('Database installed successfully from assets.');
   } else {
-    console.log('La base de datos ya existe.');
+    console.log('Database already exists.');
   }
 };

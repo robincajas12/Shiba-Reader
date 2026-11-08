@@ -215,6 +215,118 @@ export const ThemeCrimson = {
   ...common,
 };
 
+export const ThemeSunset = {
+  colors: {
+    background: '#1F1412',
+    surface: '#2A1D1A',
+    card: '#3A2723',
+    border: '#6A443E',
+
+    text: '#FDE7DF',
+    textMuted: '#E7B9A7',
+    header: '#FFF2EE',
+
+    primary: '#FF7A59',
+    onPrimary: '#1F1412',
+
+    accent: '#FFC857',
+
+    success: '#47C69B',
+    secondary: '#D9776C',
+    error: '#FF5C7A',
+    star: '#FFD166',
+
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+
+  ...common,
+};
+
+export const ThemeMint = {
+  colors: {
+    background: '#0E1F1B',
+    surface: '#163128',
+    card: '#21463B',
+    border: '#3A6659',
+
+    text: '#E8FFF5',
+    textMuted: '#A5D7C5',
+    header: '#F4FFF9',
+
+    primary: '#64D7A0',
+    onPrimary: '#0E1F1B',
+
+    accent: '#7DE1C5',
+
+    success: '#3DD598',
+    secondary: '#A9E7B3',
+    error: '#FF6B6B',
+    star: '#F6D365',
+
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+
+  ...common,
+};
+
+export const ThemeRose = {
+  colors: {
+    background: '#1B1118',
+    surface: '#2B1822',
+    card: '#3B2130',
+    border: '#6A455B',
+
+    text: '#FDEAF3',
+    textMuted: '#D7AFC0',
+    header: '#FFF2F7',
+
+    primary: '#F27DAA',
+    onPrimary: '#1B1118',
+
+    accent: '#FFB4C8',
+
+    success: '#7AD0A0',
+    secondary: '#C685A7',
+    error: '#FF7A7A',
+    star: '#F8D66D',
+
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+
+  ...common,
+};
+
+export const ThemeAmber = {
+  colors: {
+    background: '#1A140C',
+    surface: '#2B1F13',
+    card: '#3A2917',
+    border: '#68502A',
+
+    text: '#F8F0DD',
+    textMuted: '#D9C79C',
+    header: '#FFF7E6',
+
+    primary: '#F6B93B',
+    onPrimary: '#1A140C',
+
+    accent: '#FFD974',
+
+    success: '#4CAF50',
+    secondary: '#D9A441',
+    error: '#F06262',
+    star: '#FFE082',
+
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+
+  ...common,
+};
+
 export const Themes = {
   brown: ThemeBrown,
   light: ThemeLight,
@@ -223,12 +335,16 @@ export const Themes = {
   blueNight: ThemeBlueNight,
   forest: ThemeForest,
   crimson: ThemeCrimson,
+  sunset: ThemeSunset,
+  mint: ThemeMint,
+  rose: ThemeRose,
+  amber: ThemeAmber,
 };
 
 export type ThemeType = typeof ThemeBrown;
 export type ThemeName = keyof typeof Themes;
 
-export const DefaultTheme = ThemeBlueNight;
+export const DefaultTheme = ThemeOLED;
 
 // Mantener Theme por compatibilidad momentánea mientras se refactorizan los componentes
 export const Theme = DefaultTheme;

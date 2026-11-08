@@ -1,7 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Switch } from 'react-native';
-import { useDatabaseSeeding } from '../hooks/useDatabaseSeeding';
-import { useDictionaryImport } from '../hooks/useDictionaryImport';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { useVocabulary } from '../hooks/useVocabulary';
 import { useSettings } from '../hooks/useSettings';
 import { useTheme } from '../ThemeContext';
@@ -11,32 +9,20 @@ export const SettingsScreen: React.FC = () => {
   const { theme, themeName, setTheme } = useTheme();
   const { dailyGoal, setDailyGoal } = useVocabulary();
   const { searchByReading, setSearchByReading } = useSettings();
-  const { 
-    loadingSeeding, 
-    handleVerifyDatabase 
-  } = useDatabaseSeeding();
-
-  const {
-    importFromZip,
-    isImporting,
-    progress
-  } = useDictionaryImport();
-
-  const isLoading = loadingSeeding || isImporting;
 
   const dynamicStyles = styles(theme);
 
   return (
     <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.contentContainer}>
-      <Text style={dynamicStyles.title}>Configuración</Text>
+      <Text style={dynamicStyles.title}>Settings</Text>
 
-      {/* GRUPO: LECTURA Y APRENDIZAJE */}
+      {/* GROUP: READING & LEARNING */}
       <View style={dynamicStyles.group}>
-        <Text style={dynamicStyles.groupLabel}>Lectura y Aprendizaje</Text>
+        <Text style={dynamicStyles.groupLabel}>Reading & Learning</Text>
         <View style={dynamicStyles.card}>
           <View style={dynamicStyles.settingItem}>
-            <Text style={dynamicStyles.settingTitle}>Meta Diaria</Text>
-            <Text style={dynamicStyles.settingDescription}>Palabras nuevas por día.</Text>
+            <Text style={dynamicStyles.settingTitle}>Daily Goal</Text>
+            <Text style={dynamicStyles.settingDescription}>New words per day.</Text>
             <View style={dynamicStyles.goalInputContainer}>
               {[5, 10, 15, 20, 30].map((val) => (
                 <TouchableOpacity
@@ -49,7 +35,7 @@ export const SettingsScreen: React.FC = () => {
                 >
                   <Text style={[
                     dynamicStyles.goalPresetText,
-                    dailyGoal === val && { color: theme.colors.white }
+                    dailyGoal === val && { color: theme.colors.onPrimary }
                   ]}>{val}</Text>
                 </TouchableOpacity>
               ))}
@@ -59,9 +45,9 @@ export const SettingsScreen: React.FC = () => {
           <View style={[dynamicStyles.settingItem, dynamicStyles.noBorder]}>
             <View style={dynamicStyles.rowBetween}>
               <View style={{ flex: 1 }}>
-                <Text style={dynamicStyles.settingTitle}>Buscar por Lectura</Text>
+                <Text style={dynamicStyles.settingTitle}>Search by Reading</Text>
                 <Text style={dynamicStyles.settingDescription}>
-                  Incluir hiragana/katakana en las búsquedas.
+                  Include hiragana/katakana in searches.
                 </Text>
               </View>
               <Switch
@@ -75,12 +61,12 @@ export const SettingsScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* GRUPO: APARIENCIA */}
+      {/* GROUP: APPEARANCE */}
       <View style={dynamicStyles.group}>
-        <Text style={dynamicStyles.groupLabel}>Apariencia</Text>
+        <Text style={dynamicStyles.groupLabel}>Appearance</Text>
         <View style={dynamicStyles.card}>
           <View style={[dynamicStyles.settingItem, dynamicStyles.noBorder]}>
-            <Text style={dynamicStyles.settingTitle}>Tema de la Aplicación</Text>
+            <Text style={dynamicStyles.settingTitle}>App Theme</Text>
             <View style={dynamicStyles.themeGrid}>
               {(Object.keys(Themes) as ThemeName[]).map((name) => (
                 <TouchableOpacity
@@ -103,45 +89,13 @@ export const SettingsScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* GRUPO: MANTENIMIENTO */}
+      {/* GROUP: INFO */}
       <View style={dynamicStyles.group}>
-        <Text style={dynamicStyles.groupLabel}>Datos y Diccionario</Text>
-        <View style={dynamicStyles.card}>
-          <View style={[dynamicStyles.settingItem, dynamicStyles.noBorder]}>
-            {isLoading ? (
-              <View style={dynamicStyles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.colors.accent} />
-                <Text style={dynamicStyles.loadingText}>{progress || 'Procesando...'}</Text>
-              </View>
-            ) : (
-              <View style={dynamicStyles.buttonGroup}>
-                <TouchableOpacity 
-                  style={[dynamicStyles.button, dynamicStyles.primaryButton]} 
-                  onPress={importFromZip}
-                >
-                  <Text style={dynamicStyles.primaryButtonText}>Importar Diccionario (.zip)</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={dynamicStyles.button} 
-                  onPress={handleVerifyDatabase}
-                >
-                  <Text style={dynamicStyles.buttonText}>Verificar Estado DB</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-
-
-      {/* GRUPO: INFO */}
-      <View style={dynamicStyles.group}>
-        <Text style={dynamicStyles.groupLabel}>Información</Text>
+        <Text style={dynamicStyles.groupLabel}>Information</Text>
         <View style={dynamicStyles.card}>
           <View style={[dynamicStyles.settingItem, dynamicStyles.noBorder]}>
             <Text style={dynamicStyles.infoText}>Shiba Reader v0.2.0</Text>
-            <Text style={dynamicStyles.infoText}>Desarrollado para lectores de japonés.</Text>
+            <Text style={dynamicStyles.infoText}>Built for Japanese readers.</Text>
           </View>
         </View>
       </View>

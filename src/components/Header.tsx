@@ -30,14 +30,14 @@ export const Header: React.FC<HeaderProps> = ({ loadingSeeding, onSeed, onVerify
               style={[dynamicStyles.navButton, { backgroundColor: theme.colors.success, marginRight: 8 }]} 
               onPress={onSeed}
             >
-              <Text style={dynamicStyles.navButtonText}>Cargar DB</Text>
+              <Text style={dynamicStyles.navButtonText}>Load DB</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={[dynamicStyles.navButton, { backgroundColor: theme.colors.secondary }]} 
               onPress={onVerify}
             >
-              <Text style={dynamicStyles.navButtonText}>Verificar</Text>
+              <Text style={dynamicStyles.navButtonText}>Verify</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
