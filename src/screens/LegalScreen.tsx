@@ -167,6 +167,10 @@ const styles = (theme: any) => StyleSheet.create({
     bulletItem: { flexDirection: 'row', marginTop: 10, paddingLeft: 5 },
     bullet: { fontSize: 14, color: theme.colors.primary, marginRight: 10 },
     bulletText: { flex: 1, fontSize: 14, color: theme.colors.text, lineHeight: 20 },
+    donorGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
     donorName: { width: '50%', fontSize: 13, color: theme.colors.textMuted, marginBottom: 5 },
     smallLink: {
         color: theme.colors.primary,

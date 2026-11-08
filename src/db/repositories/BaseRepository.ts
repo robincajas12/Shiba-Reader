@@ -88,7 +88,7 @@ export abstract class Repository<T extends { [key: string]: unknown }> {
 
     public async insert(entity: T): Promise<void> {
         const { sql, args } = this.getInsertQueryAndValues(entity);
-        const result = await db.execute(sql, args);
+        const result = await db.execute(sql, args as any);
         
         if (result.insertId !== undefined) {
             (entity as any).id = result.insertId;

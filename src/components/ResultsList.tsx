@@ -10,6 +10,8 @@ interface ResultsListProps {
   hasInput: boolean;
   selectedSenseIds: Set<string>;
   onToggleSense: (id: string) => void;
+  emptyMessage?: string;
+  savedByIndex?: Record<number, boolean>;
 }
 
 export const ResultsList: React.FC<ResultsListProps> = React.memo(({ 
@@ -17,7 +19,9 @@ export const ResultsList: React.FC<ResultsListProps> = React.memo(({
   loading, 
   hasInput, 
   selectedSenseIds,
-  onToggleSense 
+  onToggleSense,
+  emptyMessage,
+  savedByIndex = {}
 }) => {
   const { theme } = useTheme();
   const dynamicStyles = styles(theme);
@@ -38,7 +42,7 @@ export const ResultsList: React.FC<ResultsListProps> = React.memo(({
         {!loading && results.length === 0 && (
           <View style={dynamicStyles.emptyState}>
             <Text style={dynamicStyles.emptyStateText}>
-              {hasInput ? "Tap a word above to see its meaning" : "Type something to start"}
+              {emptyMessage || (hasInput ? "Tap a word above to see its meaning" : "Type something to start")}
             </Text>
           </View>
         )}
@@ -49,6 +53,7 @@ export const ResultsList: React.FC<ResultsListProps> = React.memo(({
             cand={m.cand} 
             onToggleSense={onToggleSense}
             selectedSenseIds={selectedSenseIds}
+            alreadySaved={Boolean(savedByIndex[i])}
           />
         ))}
       </View>

@@ -48,23 +48,28 @@ export class VocabularyRepository extends Repository<VocabularyEntry> {
         return result.rows as VocabularyEntry[];
     }
 
-    async getAllWithSRS(limit: number = 20, offset: number = 0, search: string = '', sortMode: string = 'newest'): Promise<any[]> {
-        let orderClause = 'v.created_at DESC';
-        if (sortMode === 'oldest') orderClause = 'v.created_at ASC';
-        if (sortMode === 'alpha') orderClause = 'v.term COLLATE NOCASE ASC';
+    async findByTermAndReading(term: string, reading: string): Promise<VocabularyEntry[]> {
+        const query = `SELECT * FROM ${this.table.name} WHERE term = ? AND reading = ?`;
+        const result = await db.execute(query, [term, reading]);
+        return result.rows as VocabularyEntry[];
+    }
+
+    async getAllVocabulary(limit: number = 20, offset: number = 0, search: string = '', sortMode: string = 'newest'): Promise<VocabularyEntry[]> {
+        let orderClause = 'created_at DESC';
+        if (sortMode === 'oldest') orderClause = 'created_at ASC';
+        if (sortMode === 'alpha') orderClause = 'term COLLATE NOCASE ASC';
 
         let whereClause = '';
         const params: any[] = [];
 
         if (search) {
-            whereClause = 'WHERE v.term LIKE ? OR v.reading LIKE ?';
+            whereClause = 'WHERE term LIKE ? OR reading LIKE ?';
             params.push(`%${search}%`, `%${search}%`);
         }
 
         const query = `
-            SELECT v.*, s.interval, s.repetitions, s.next_review
-            FROM ${this.table.name} v
-            LEFT JOIN srs_queue s ON v.id = s.vocab_id
+            SELECT *
+            FROM ${this.table.name}
             ${whereClause}
             ORDER BY ${orderClause}
             LIMIT ? OFFSET ?
@@ -72,7 +77,7 @@ export class VocabularyRepository extends Repository<VocabularyEntry> {
         params.push(limit, offset);
 
         const result = await db.execute(query, params);
-        return result.rows as any[];
+        return result.rows as VocabularyEntry[];
     }
 
     async getTotalCount(search: string = ''): Promise<number> {

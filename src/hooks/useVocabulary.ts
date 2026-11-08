@@ -13,7 +13,7 @@ export const useVocabulary = () => {
     const loadVocabulary = useCallback(async (limit: number = 20, offset: number = 0, search: string = '', sortMode: string = 'newest') => {
         try {
             const [data, count, total, goalStr] = await Promise.all([
-                vocabRepo.getAllWithSRS(limit, offset, search, sortMode),
+                vocabRepo.getAllVocabulary(limit, offset, search, sortMode),
                 vocabRepo.getTodayCount(),
                 vocabRepo.getTotalCount(search),
                 settingsRepo.get('daily_goal', '10')
@@ -44,6 +44,16 @@ export const useVocabulary = () => {
         }
     }, [settingsRepo]);
 
+    const isAlreadySaved = useCallback(async (term: string, reading: string) => {
+        try {
+            const existing = await vocabRepo.findByTermAndReading(term, reading);
+            return existing.length > 0;
+        } catch (error) {
+            console.error("Error checking vocabulary duplicate:", error);
+            return false;
+        }
+    }, [vocabRepo]);
+
     const addVocabulary = useCallback(async (term: string, reading: string, definition: string, sentence: string) => {
         try {
             const existing = await vocabRepo.findDuplicate(term, reading, sentence);
@@ -51,64 +61,6 @@ export const useVocabulary = () => {
 
             const vocabEntry = { term, reading, definition, sentence, created_at: Date.now() } as VocabularyEntry;
             await vocabRepo.insert(vocabEntry);
-            
-            if (vocabEntry.id) {
-                const srsRepo = dbEngine.getRepository('SRSRepository');
-                await srsRepo.insert({
-                    vocab_id: vocabEntry.id,
-                    card_type: 1,
-                    interval: 0,
-                    ease_factor: 2.5,
-                    repetitions: 0,
-                    next_review: Date.now(),
-                    last_lookup: Date.now(),
-                    last_review: 0,
-                    created_at: Date.now(),
-                    id: 0
-                });
-
-                // Gamificación: Incrementar puntos a los Kanjis del término minado (+1.0 punto)
-                try {
-                    const kanjis = term.match(/[\u4e00-\u9faf]/g) || [];
-                    const uniqueKanjis = Array.from(new Set(kanjis));
-                    const kanjiEggRepo = dbEngine.getRepository('KanjiEggRepository');
-                    const hatchedList: string[] = [];
-                    
-                    for (const kanji of uniqueKanjis) {
-                        const egg = await kanjiEggRepo.findByKanji(kanji);
-                        if (!egg) {
-                            // Descubrir con 1 punto
-                            await kanjiEggRepo.insert({
-                                kanji,
-                                points: 1.0,
-                                status: 'egg',
-                                discovered_at: Date.now(),
-                                hatched_at: null
-                            });
-                        } else {
-                            const newPoints = Math.min(egg.points + 1.0, 100);
-                            let status = egg.status;
-                            let hatchedAt = egg.hatched_at;
-                            if (egg.status === 'egg' && newPoints >= 5.0) {
-                                status = 'hatched';
-                                hatchedAt = Date.now();
-                                hatchedList.push(kanji);
-                            }
-                            await kanjiEggRepo.updatePoints(kanji, newPoints, status, hatchedAt);
-                        }
-                    }
-                    
-                    if (hatchedList.length > 0) {
-                        const { Alert } = require('react-native');
-                        Alert.alert(
-                            '¡Eclosión de Kanji! 🥚✨',
-                            `¡Felicidades! Los siguientes kanjis han eclosionado al minar: ${hatchedList.join(', ')}`
-                        );
-                    }
-                } catch (kErr) {
-                    console.error("Error al procesar kanji eggs en addVocabulary:", kErr);
-                }
-            }
             
             await loadVocabulary();
             return true;
@@ -145,6 +97,7 @@ export const useVocabulary = () => {
         dailyGoal,
         setDailyGoal: updateDailyGoal,
         addVocabulary,
+        isAlreadySaved,
         removeVocabulary,
         updateLastCardSentence,
         refreshVocabulary: loadVocabulary

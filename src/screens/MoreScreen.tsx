@@ -16,18 +16,6 @@ export const MoreScreen: React.FC = () => {
 
   const menuItems = [
     {
-      title: 'SRS Review',
-      icon: '習',
-      description: 'Review words you forgot while reading.',
-      onPress: () => navigation.navigate('SRSReview'),
-    },
-    {
-      title: 'Kanji Hatchery',
-      icon: '卵',
-      description: 'Discover and hatch Kanji eggs as you read.',
-      onPress: () => navigation.navigate('KanjiEgg'),
-    },
-    {
       title: 'Search',
       icon: '検',
       description: 'Search terms in installed dictionaries.',

@@ -1,7 +1,34 @@
 import { useState, useCallback, useEffect } from 'react';
 import { dbEngine } from '../db/engine';
 import { Bookmark, HistoryEntry } from '../db/schemas/Browser';
-import { BookmarkRepository } from '../db/repositories/BookmarkRepository';
+
+export const DEFAULT_GOOGLE_BOOKMARK = {
+  title: 'Google',
+  url: 'https://www.google.com/'
+};
+
+const normalizeBookmarkUrl = (url: string) => url.trim().replace(/\/+$/, '').toLowerCase();
+
+export const hasDefaultGoogleBookmark = (bookmarkList: Bookmark[]) => {
+  const normalizedDefault = normalizeBookmarkUrl(DEFAULT_GOOGLE_BOOKMARK.url);
+
+  return bookmarkList.some((bookmark) => {
+    const normalizedUrl = normalizeBookmarkUrl(bookmark.url);
+    return normalizedUrl === normalizedDefault;
+  });
+};
+
+const dedupeBookmarksByUrl = (bookmarkList: Bookmark[]) => {
+  const seen = new Set<string>();
+  return bookmarkList.filter((bookmark) => {
+    const normalizedUrl = normalizeBookmarkUrl(bookmark.url);
+    if (seen.has(normalizedUrl)) {
+      return false;
+    }
+    seen.add(normalizedUrl);
+    return true;
+  });
+};
 
 export const useBrowser = () => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -13,17 +40,25 @@ export const useBrowser = () => {
   const loadBrowserData = useCallback(async () => {
     try {
       const recentHistory = await historyRepo.getRecent();
-      let allBookmarks = await bookmarkRepo.getAll();
-      
-      // Seed default bookmarks if empty
-      if (allBookmarks.length === 0) {
-        const defaults = [
-          { title: 'Google', url: 'https://www.google.com/' },
-        ];
-        for (const b of defaults) {
-          await bookmarkRepo.insert({ ...b, created_at: Date.now() } as Bookmark);
-        }
-        allBookmarks = await bookmarkRepo.getAll();
+      const rawBookmarks = await bookmarkRepo.getAll();
+      const bookmarksWithoutDuplicates = dedupeBookmarksByUrl(rawBookmarks);
+
+      const duplicateIds = rawBookmarks
+        .filter((bookmark) => !bookmarksWithoutDuplicates.some((uniqueBookmark) => uniqueBookmark.id === bookmark.id))
+        .map((bookmark) => bookmark.id);
+
+      for (const duplicateId of duplicateIds) {
+        await bookmarkRepo.delete(duplicateId);
+      }
+
+      let allBookmarks = dedupeBookmarksByUrl(await bookmarkRepo.getAll());
+
+      if (!hasDefaultGoogleBookmark(allBookmarks)) {
+        await bookmarkRepo.insert({
+          ...DEFAULT_GOOGLE_BOOKMARK,
+          created_at: Date.now()
+        } as Bookmark);
+        allBookmarks = dedupeBookmarksByUrl(await bookmarkRepo.getAll());
       }
 
       setHistory(recentHistory);

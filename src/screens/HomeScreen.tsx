@@ -3,10 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useBrowser } from '../hooks/useBrowser';
-import { useSRS } from '../hooks/useSRS';
 import { useTheme } from '../ThemeContext';
 import { AdBanner } from '../components/AdBanner';
-import { dbEngine } from '../db/engine';
 
 type TabParamList = {
   Home: undefined;
@@ -16,28 +14,43 @@ type TabParamList = {
   MoreStack: { screen: string };
 };
 
+export const buildTargetUrl = (targetUrl: string): string => {
+  const value = targetUrl.trim();
+
+  if (!value) {
+    return 'https://www.google.com/';
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  if (/^www\./i.test(value)) {
+    return `https://${value}`;
+  }
+
+  const looksLikeDomain = /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(value);
+  if (looksLikeDomain) {
+    return `https://${value}`;
+  }
+
+  return `https://www.google.com/search?q=${encodeURIComponent(value)}`;
+};
+
 export const HomeScreen: React.FC = () => {
   const [url, setUrl] = useState('');
-  const [pendingCount, setPendingCount] = useState(0);
-  const [kanjiStats, setKanjiStats] = useState({ total: 0, eggs: 0, hatched: 0 });
   const { theme } = useTheme();
   const navigation = useNavigation<BottomTabNavigationProp<any>>();
   const { history, bookmarks, clearHistory, removeBookmark, refreshBrowserData } = useBrowser();
-  const { getPendingCount } = useSRS();
 
   useFocusEffect(
     useCallback(() => {
       refreshBrowserData();
-      getPendingCount().then(setPendingCount);
-      
-      const kanjiEggRepo = dbEngine.getRepository('KanjiEggRepository');
-      kanjiEggRepo.getStats().then(setKanjiStats);
-    }, [refreshBrowserData, getPendingCount])
+    }, [refreshBrowserData])
   );
 
   const handleOpenUrl = (targetUrl: string) => {
-    if (!targetUrl) return;
-    const formattedUrl = targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`;
+    const formattedUrl = buildTargetUrl(targetUrl);
     navigation.navigate('Reader', { url: formattedUrl });
   };
 
@@ -75,59 +88,6 @@ export const HomeScreen: React.FC = () => {
               <Text style={dynamicStyles.goButtonText}>GO</Text>
               </TouchableOpacity>
           </View>
-        </View>
-
-        {/* SRS Status Section */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Training Center</Text>
-          <View style={dynamicStyles.srsGrid}>
-              <TouchableOpacity 
-              style={dynamicStyles.srsCardLarge}
-              onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'normal' } })}
-              >
-                  <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.primary + '20' }]}>
-                      <Text style={dynamicStyles.srsEmoji}>🧠</Text>
-                  </View>
-                  <Text style={dynamicStyles.srsCardTitle}>Daily Review</Text>
-                  <View style={dynamicStyles.srsStatusRow}>
-                      <Text style={dynamicStyles.srsStatusText}>
-                          {pendingCount > 0 ? `${pendingCount} due` : 'Finished'}
-                      </Text>
-                      {pendingCount > 0 && <View style={dynamicStyles.dot} />}
-                  </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-              style={dynamicStyles.srsCardLarge}
-              onPress={() => navigation.navigate('MoreStack', { screen: 'SRSReview', params: { mode: 'queue' } })}
-              >
-                  <View style={[dynamicStyles.srsIconCircle, { backgroundColor: theme.colors.accent + '20' }]}>
-                      <Text style={dynamicStyles.srsEmoji}>⚡</Text>
-                  </View>
-                  <Text style={dynamicStyles.srsCardTitle}>Mining Queue</Text>
-                  <Text style={dynamicStyles.srsStatusText}>Prioritize</Text>
-              </TouchableOpacity>
-          </View>
-
-          {/* Kanji Hatchery full-width card */}
-          <TouchableOpacity 
-            style={dynamicStyles.srsCardFullWidth}
-            onPress={() => navigation.navigate('MoreStack', { screen: 'KanjiEgg' })}
-            activeOpacity={0.85}
-          >
-              <View style={dynamicStyles.srsIconCircleRow}>
-                  <View style={[dynamicStyles.srsIconCircleSmall, { backgroundColor: theme.colors.star + '20' }]}>
-                      <Text style={dynamicStyles.srsEmojiSmall}>🥚</Text>
-                  </View>
-                  <View style={{ marginLeft: 15, flex: 1 }}>
-                      <Text style={dynamicStyles.srsCardTitleLeft}>Incubadora Kanji</Text>
-                      <Text style={dynamicStyles.srsStatusText}>
-                          {kanjiStats.hatched} Eclosionados • {kanjiStats.eggs} Incubando
-                      </Text>
-                  </View>
-                  <Text style={dynamicStyles.arrow}>›</Text>
-              </View>
-          </TouchableOpacity>
         </View>
 
         <View style={dynamicStyles.section}>
@@ -283,91 +243,6 @@ const styles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.header,
     fontFamily: theme.fonts.serif,
-  },
-  srsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  srsCardLarge: {
-    width: '48%',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 25,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  srsCardFullWidth: {
-    width: '100%',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 25,
-    padding: 20,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  srsIconCircleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  srsIconCircleSmall: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  srsEmojiSmall: {
-    fontSize: 22,
-  },
-  srsCardTitleLeft: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: theme.colors.header,
-    marginBottom: 2,
-  },
-  srsIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  srsEmoji: {
-    fontSize: 28,
-  },
-  srsCardTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: theme.colors.header,
-    marginBottom: 5,
-  },
-  srsStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  srsStatusText: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    fontWeight: '600',
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.colors.accent,
-    marginLeft: 6,
   },
   bookmarksScroll: {
     paddingRight: 20,

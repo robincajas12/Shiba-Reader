@@ -18,13 +18,6 @@ const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void }> = 
         console.error("Error parsing definition:", e);
     }
 
-    const getSRSStatus = () => {
-        if (!item.repetitions || item.repetitions === 0) return { label: 'NEW', color: theme.colors.accent };
-        if (item.repetitions < 4) return { label: 'LEARNING', color: theme.colors.primary };
-        return { label: 'MASTERED', color: theme.colors.success };
-    };
-
-    const status = getSRSStatus();
     const dynamicStyles = styles(theme);
 
     return (
@@ -33,9 +26,6 @@ const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void }> = 
                 <View style={dynamicStyles.termContainer}>
                     <View style={dynamicStyles.termRow}>
                         <Text style={dynamicStyles.term}>{item.term}</Text>
-                        <View style={[dynamicStyles.statusBadge, { backgroundColor: status.color + '20', borderColor: status.color + '40' }]}>
-                            <Text style={[dynamicStyles.statusBadgeText, { color: status.color }]}>{status.label}</Text>
-                        </View>
                     </View>
                     {item.reading !== item.term && <Text style={dynamicStyles.reading}>{item.reading}</Text>}
                 </View>
@@ -67,7 +57,6 @@ const VocabularyItem: React.FC<{ item: any; onRemove: (id: number) => void }> = 
             )}
             
             <View style={dynamicStyles.footer}>
-                <Text style={dynamicStyles.footerInfo}>Interval: {item.interval || 0}d • Reps: {item.repetitions || 0}</Text>
                 <Text style={dynamicStyles.date}>{new Date(item.created_at).toLocaleDateString()}</Text>
             </View>
         </View>
@@ -273,16 +262,6 @@ const styles = (theme: any) => StyleSheet.create({
         color: theme.colors.header,
         marginRight: 10,
     } as TextStyle,
-    statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 6,
-        borderWidth: 1,
-    },
-    statusBadgeText: {
-        fontSize: 9,
-        fontWeight: '900',
-    },
     reading: {
         fontSize: 15,
         color: theme.colors.accent,
@@ -335,17 +314,12 @@ const styles = (theme: any) => StyleSheet.create({
     footer: {
         marginTop: theme.spacing.md,
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
         paddingTop: 10,
         borderTopWidth: 1,
         borderTopColor: theme.colors.border + '40',
     } as ViewStyle,
-    footerInfo: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: theme.colors.textMuted,
-    },
     date: {
         fontSize: 10,
         color: theme.colors.textMuted,

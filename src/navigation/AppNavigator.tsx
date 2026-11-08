@@ -9,10 +9,8 @@ import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { VocabularyScreen } from '../screens/VocabularyScreen';
 import { MoreScreen } from '../screens/MoreScreen';
-import { SRSReviewScreen } from '../screens/SRSReviewScreen';
 import { LegalScreen } from '../screens/LegalScreen';
 import { PremiumScreen } from '../screens/PremiumScreen';
-import { KanjiEggScreen } from '../screens/KanjiEggScreen';
 import { useTheme } from '../ThemeContext';
 
 // 1. Tipos de Parámetros de Rutas
@@ -32,9 +30,7 @@ export type MoreStackParamList = {
   More: undefined;
   Search: undefined;
   Settings: undefined;
-  SRSReview: { mode: 'normal' | 'queue' };
   Legal: undefined;
-  KanjiEgg: undefined;
 };
 
 // 2. Creación de los Navegadores
@@ -74,22 +70,9 @@ const MoreNavigator = () => {
         options={{ title: 'Settings' }} 
       />
       <Stack.Screen 
-        name="SRSReview" 
-        component={SRSReviewScreen} 
-        options={({ route }) => ({ 
-          title: route.params?.mode === 'queue' ? 'Mining Queue' : 'Daily Review', 
-          headerShown: false 
-        })} 
-      />
-      <Stack.Screen 
         name="Legal" 
         component={LegalScreen} 
         options={{ title: 'Legal & Credits', headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="KanjiEgg" 
-        component={KanjiEggScreen} 
-        options={{ title: 'Kanji Hatchery', headerShown: false }} 
       />
     </Stack.Navigator>
   );

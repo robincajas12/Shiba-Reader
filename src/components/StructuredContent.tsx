@@ -43,6 +43,7 @@ const SelectionIndicator = React.memo(({ id, isSmall = false }: { id: string, is
       ]} 
       onPress={() => onToggle(id)}
       activeOpacity={0.7}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
     >
       {isSelected && <Text style={isSmall ? dynamicStyles.liCheckboxTick : dynamicStyles.checkboxTick}>✓</Text>}
     </TouchableOpacity>
@@ -156,6 +157,20 @@ const ContentRenderer: React.FC<{ content: StructuredContentNode | StructuredCon
         <Text style={dynamicStyles.link}>
           {nodeText || <ContentRenderer content={innerContent as StructuredContentNode} />}
         </Text>
+      );
+    }
+
+    if (id) {
+      return (
+        <View style={[dynamicStyles.block, dynamicStyles.senseBlock]}>
+          <View style={dynamicStyles.senseSelector}>
+            <SelectionIndicator id={id} />
+            <View style={{ flex: 1 }}>
+              {nodeText && <Text style={dynamicStyles.textNode}>{nodeText}</Text>}
+              {innerContent && <ContentRenderer content={innerContent as StructuredContentNode} />}
+            </View>
+          </View>
+        </View>
       );
     }
 

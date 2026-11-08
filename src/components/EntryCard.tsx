@@ -9,13 +9,15 @@ interface EntryCardProps {
   cand: LookupCandidate;
   onToggleSense?: (id: string) => void;
   selectedSenseIds?: Set<string>;
+  alreadySaved?: boolean;
 }
 
 export const EntryCard: React.FC<EntryCardProps> = React.memo(({ 
   entry, 
   cand, 
   onToggleSense,
-  selectedSenseIds
+  selectedSenseIds,
+  alreadySaved = false,
 }) => {
   const { theme } = useTheme();
   const [term, reading, tags, rules, , content] = entry;
@@ -31,6 +33,11 @@ export const EntryCard: React.FC<EntryCardProps> = React.memo(({
         </View>
         
         <View style={dynamicStyles.headerActions}>
+          {alreadySaved && (
+            <View style={dynamicStyles.savedBadge}>
+              <Text style={dynamicStyles.savedBadgeText}>Already saved</Text>
+            </View>
+          )}
           <View style={[dynamicStyles.matchIndicator, cand.type === 'exact' ? dynamicStyles.matchExact : dynamicStyles.matchOther]}>
             <Text style={dynamicStyles.matchIndicatorText}>{cand.type.replace('-', ' ')}</Text>
           </View>
@@ -107,6 +114,21 @@ const styles = (theme: any) => StyleSheet.create({
   matchExact: { backgroundColor: theme.colors.primary } as ViewStyle,
   matchOther: { backgroundColor: theme.colors.secondary } as ViewStyle,
   matchIndicatorText: { color: theme.colors.background, fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase' } as TextStyle,
+  savedBadge: {
+    backgroundColor: theme.colors.success + '20',
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: theme.colors.success + '80',
+  } as ViewStyle,
+  savedBadgeText: {
+    color: theme.colors.success,
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  } as TextStyle,
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: theme.spacing.md } as ViewStyle,
   tagBadge: { backgroundColor: theme.colors.border, borderRadius: theme.radius.sm, paddingHorizontal: 6, paddingVertical: 2, marginRight: 5, marginBottom: 5 } as ViewStyle,
   tagBadgeText: { fontSize: 10, color: theme.colors.text, fontWeight: '700' } as TextStyle,
